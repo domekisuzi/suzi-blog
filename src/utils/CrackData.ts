@@ -1,4 +1,4 @@
-import {Module, Task} from "../features/tasks/types";
+import {Module, Subtask, Task} from "../features/tasks/types";
 export const mockModules:Module[] = [
     {id:"md-1",name:"learn Japanese"},
     {id:"md-2",name:"Finance"},
@@ -46,3 +46,17 @@ export const mockTasks: Task[] = [
 
     }
 ]
+
+export const mockSubTask:Subtask[] =
+    [
+        { id: 'sub-3', title: '提取 TaskList 组件', completed: false, createdAt: '2025-07-05T11:35:00Z' },
+        { id: 'sub-4', title: '优化状态管理逻辑', completed: false, createdAt: '2025-07-05T11:40:00Z' }
+    ]
+
+// export interface Subtask {
+//     id: string
+//     title: string
+//     completed: boolean
+//     createdAt: string
+//     updatedAt?: string
+// }

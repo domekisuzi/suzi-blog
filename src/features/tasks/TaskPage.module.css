@@ -13,7 +13,7 @@
     flex-direction: column;
     align-items: center;
     position: relative;
-    z-index: -1;
+
     background-color: antiquewhite;
 }
 .taskSection{
@@ -25,15 +25,22 @@
 .module {
     border-radius: 10px;
     margin-right: 30px;
-    position: relative;
+    /*position: relative;*/
     background-color: cyan;
 }
+
+.taskRoot{
+    width: 400px;
+}
+
 .taskItem{
     display: flex;
     flex-direction: column;
     border-radius: 10px;
     background-color: azure;
 }
+
+
 .taskItem:not(:first-child){
     margin-top: 10px;
 }
@@ -41,5 +48,12 @@
 .taskTitle{
     display: flex;
     flex-direction: row;
-    margin-left: 10px;
+    gap: 10px;
+    justify-content: space-between;
+    width: 100%;
+
+}
+
+.taskButton {
+    width: 100%;
 }
