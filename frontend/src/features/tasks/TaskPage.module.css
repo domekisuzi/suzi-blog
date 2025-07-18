@@ -41,7 +41,7 @@
 }
 
 
-.taskItem:not(:first-child){
+.cardTaskItem:not(:first-child){
     margin-top: 10px;
 }
 
