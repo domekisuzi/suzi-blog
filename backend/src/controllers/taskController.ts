@@ -40,7 +40,7 @@ export async function create(req:Request, res:Response) {
             await conn.query(
                 `INSERT INTO subtasks (id, title, completed, created_at, updated_at, task_id)
          VALUES (?, ?, ?, ?, ?, ?)`,
-                [sub.id, sub.title, sub.completed, formatForSQL(new Date().toISOString()) , formatForSQL(new Date().toISOString()), id]
+                [sub.id, sub.title, sub.completed, sub.createdAt ?? formatForSQL(new Date().toISOString()) ,sub.updatedAt ?? formatForSQL(new Date().toISOString()), id]
             )
         }
         await conn.commit()

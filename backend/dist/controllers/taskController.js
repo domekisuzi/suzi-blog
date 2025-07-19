@@ -38,7 +38,7 @@ async function create(req, res) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [id, title, description, completed, priority, dueDate, createdAt, updatedAt, module?.id, category?.id]);
         for (const sub of subtasks || []) {
             await conn.query(`INSERT INTO subtasks (id, title, completed, created_at, updated_at, task_id)
-         VALUES (?, ?, ?, ?, ?, ?)`, [sub.id, sub.title, sub.completed, formatForSQL(new Date().toISOString()), formatForSQL(new Date().toISOString()), id]);
+         VALUES (?, ?, ?, ?, ?, ?)`, [sub.id, sub.title, sub.completed, sub.createdAt ?? formatForSQL(new Date().toISOString()), sub.updatedAt ?? formatForSQL(new Date().toISOString()), id]);
         }
         await conn.commit();
         res.status(201).json({ id });

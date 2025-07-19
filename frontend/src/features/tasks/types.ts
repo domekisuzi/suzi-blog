@@ -10,6 +10,9 @@ export interface Subtask {
 // 任务优先级枚举
 export type TaskPriority = 'low' | 'medium' | 'high'
 
+export const TaskPriorityValues: TaskPriority[] = ['low', 'medium', 'high']
+
+
 // 主任务类型
 export interface Task {
     id: string
