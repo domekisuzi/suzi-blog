@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect, useMemo} from 'react'
 import {
     Button,
     Dialog,
@@ -15,13 +15,15 @@ import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../utils/CrackData";
 import {useNavigate} from "react-router-dom";
 
-import {createTask} from "../../api/tasks";
+import {createTask, fetchTasks} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { DatePicker } from '@mui/x-date-pickers'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import {Simulate} from "react-dom/test-utils";
+import {useLocalTime} from "../../utils/DataUtils";
 
 
 //  后续再设计是否会有页面方面的内容
@@ -30,13 +32,19 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
 const TaskPage: React.FC=() => {
 
-
-    const taskList:Task[] = mockTasks
+    // const taskList:Task[] = mockTasks
     const moduleList:Module[] = mockModules
 
 
     const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
     const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
+
+
+    // used  for detail task
+    const [nowDetailTask,setNowDetailTask] = React.useState< Task| null>(null)
+    const [taskList,setTaskList] = React.useState <Task[]|null>(null)
+
+
     const handleCreateTaskOpen = () => {
         setCreateTaskOpen(true);
     };
@@ -44,14 +52,23 @@ const TaskPage: React.FC=() => {
     const handleCreateTaskClose = () => {
         setCreateTaskOpen(false);
     };
-    const handleDetailTaskOpen = () => {
-        setDetailTaskOpen(true);
+    const handleDetailTaskOpen = (task:Task) => {
+        setNowDetailTask(task)
+        if(task) {
+            setDetailTaskOpen(true) // if task is not exist, we can not open the detail dialog,though it would't hapenn in normal time
+        }
+        else{
+            setDetailTaskOpen(false)
+            alert("unexpected error happen ! ")
+        }
     };
 
     const handleDetailTaskClose = () => {
         setDetailTaskOpen(false);
     };
+
     const [dueDate, setDueDate] = React.useState<Date | null>(null)
+
     const formattedDate = dueDate
         ? dueDate.toISOString().slice(0, 19).replace('T', ' ')
         : null
@@ -76,12 +93,39 @@ const TaskPage: React.FC=() => {
             }
             console.log(taskData.dueDate)
             console.log("创建任务成功")
-        })
-
+        }).catch(
+            (error)=>{
+                console.log(error)
+            }
+        )
         handleCreateTaskClose()
     }
 
-    const task  = mockTasks[0]
+    useEffect(()=>{
+        fetchTasks().then(
+            (res)=>{
+                console.log(res)
+                setTaskList(res)
+            }
+        )
+    },[])
+
+
+    //also need a var to show completedTask,then use a button to change the task state
+    const uncompletedTasks:Task[] =   useMemo (() =>{ // maybe sometimes we need to show  the work both completed and uncompleted
+        if(taskList){
+           return  taskList.filter(task => !task.completed)
+        }
+        return  []
+    },[taskList])
+
+    const  completedTasks:Task[] =   useMemo (() =>{ // maybe sometimes we need to show  the work both completed and uncompleted
+        if(taskList){
+            return  taskList.filter(task => task.completed)
+        }
+        return  []
+    },[taskList])
+
 
     return(
     <div className={styles.container}>
@@ -105,7 +149,10 @@ const TaskPage: React.FC=() => {
                         <Box
                             id="createTaskForm"
                             component="form"
-                            onSubmit={handleCreateTaskSubmit}
+                            onSubmit={(e)=> {
+                                handleCreateTaskSubmit(e)
+                            }
+                        }
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -161,7 +208,10 @@ const TaskPage: React.FC=() => {
 
                             <DatePicker
                                 value={dueDate}
-                                onChange={(newValue) => setDueDate(newValue)}
+                                onChange={(newValue) => {
+                                    setDueDate(newValue)
+                                    console.log("change to " + newValue as string)
+                                }}
 
                             />
                         </Box>
@@ -201,26 +251,33 @@ const TaskPage: React.FC=() => {
             </div>
             <div className={styles.tasks}>
                 <List className={styles.taskRoot}>
-                    {taskList.map((task)=>(
-                        <Card  key={task.id}  className={styles.cardTaskItem}>
-                            <CardActionArea onClick={handleDetailTaskOpen}>
-                                <ListItem className={styles.taskItem}>
 
-                                        <div className={styles.taskTitle}>
-                                            <p>{(task.module && task.module.name)}</p>
-                                            <p> {( task.completed? "Completed":"In progress")  }</p>
-                                        </div>
+                    {
 
-                                        <ListItemText  className={styles.taskButton}  primary={task.title}
-                                                       secondary={task.description}
-                                        />
+                        uncompletedTasks?.map((task)=> (
 
-                                </ListItem>
-                        </CardActionArea>
-                        </Card>
+                                <Card key={task.id} className={styles.cardTaskItem}>
+                                    <CardActionArea onClick={ ()=>{
+                                        handleDetailTaskOpen(task)
+                                    } }>
+                                        <ListItem className={styles.taskItem}>
+
+                                            <div className={styles.taskTitle}>
+                                                <p>{(task.module && task.module.name)}</p>
+                                                <p> {(task.completed ? "Completed" : "In progress")}</p>
+                                            </div>
+
+                                            <ListItemText className={styles.taskButton} primary={task.title}
+                                                          secondary={task.description}
+                                            />
+
+                                        </ListItem>
+                                    </CardActionArea>
+                                </Card>
                         )
-                    )}
+                    )
 
+                    }
                 </List>
             </div>
 
@@ -229,46 +286,56 @@ const TaskPage: React.FC=() => {
                 <DialogTitle>
                     任务详情
                 </DialogTitle>
-                <DialogContent dividers>
-                    <Typography variant="h5" gutterBottom fontWeight={600}>
-                        {task.title}
-                    </Typography>
+                <DialogContent dividers>{
+                    nowDetailTask && (
+                        <React.Fragment>
+                            <Typography variant="h5" gutterBottom fontWeight={600}>
+                                {nowDetailTask?.title}
+                            </Typography>
 
-                    <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
-                        <Chip label={`优先级: ${task.priority}`} color="primary" size="small" />
-                        <Chip label={task.completed ? '已完成' : '未完成'} color={task.completed ? 'default' : 'success'} size="small" />
-                    </Box>
+                            <Box sx={{display: 'flex', gap: 2, mb: 1}}>
+                                <Chip label={`优先级: ${nowDetailTask.priority}`} color="primary" size="small"/>
+                                <Chip label={nowDetailTask.completed ? '已完成' : '未完成'}
+                                      color={nowDetailTask.completed ? 'default' : 'success'} size="small"/>
+                            </Box>
 
-                    <Typography variant="body2" color="text.secondary">
-                        模块：{task.module?.name ?? ""} | 分类：{""}
-                    </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                模块：{nowDetailTask.module?.name ?? ""} | 分类：{""}
+                            </Typography>
 
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        创建时间：{ (task.createdAt)} ｜ 截止：{ (task.dueDate)}
-                    </Typography>
-                    <Divider sx={{ my: 2 }} />
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                创建时间：{(nowDetailTask.createdAt)} ｜ 截止：{(nowDetailTask.dueDate)}
+                            </Typography>
+                            <Divider sx={{my: 2}}/>
 
-                    <Typography variant="subtitle1" gutterBottom>描述</Typography>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                        {task.description}
-                    </Typography>
+                            <Typography variant="subtitle1" gutterBottom>描述</Typography>
+                            <Typography variant="body1" sx={{whiteSpace: 'pre-line'}}>
+                                {nowDetailTask.description}
+                            </Typography>
 
-                    { ((task.subtasks?.length ?? 0) > 0) && (
-                        <>
-                            <Divider sx={{ my: 2 }} />
-                            <Typography variant="subtitle1" gutterBottom>子任务</Typography>
-                            <List dense>
-                                {task.subtasks?.map(sub => (
-                                    <ListItem key={sub.id}>
-                                        <ListItemIcon>
-                                            {sub.completed ? <CheckCircleIcon color="success" /> : <RadioButtonUncheckedIcon color="disabled" />}
-                                        </ListItemIcon>
-                                        <ListItemText primary={sub.title} secondary={sub.completed ? '已完成' : '未完成'} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </>
-                    )}
+                            {/*this block seems too redundant, if have chance, we need to change it to a simpler version */}
+                            {((nowDetailTask.subtasks?.length ?? 0) > 0) && (
+                                <>
+                                    <Divider sx={{my: 2}}/>
+                                    <Typography variant="subtitle1" gutterBottom>子任务</Typography>
+                                    <List dense>
+                                        {nowDetailTask.subtasks?.map(sub => (
+                                            <ListItem key={sub.id}>
+                                                <ListItemIcon>
+                                                    {sub.completed ? <CheckCircleIcon color="success"/> :
+                                                        <RadioButtonUncheckedIcon color="disabled"/>}
+                                                </ListItemIcon>
+                                                <ListItemText primary={sub.title}
+                                                              secondary={sub.completed ? '已完成' : '未完成'}/>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                </>
+                            )}
+
+                        </React.Fragment>
+                    )
+                }
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDetailTaskClose} autoFocus>
