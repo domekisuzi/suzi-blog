@@ -1,17 +1,10 @@
 import { v4 as uuid } from 'uuid'
-import {formatForSQL} from "./DataUtils";
+ 
 
 
 // An advanced function to build a  data, the grammar T & { [K in typeof key]:string } is used for build an obj with extra pros K,
 export function withUUID<T extends object>(original:T,key:string='id',deep:boolean=false ):T & { [K in typeof key]:string } {
     const source = deep? structuredClone(original): original
-    const timeField = 'createdAt'
-    const updatedField = 'updatedAt'
-
-    if( timeField in original){
-        const now = formatForSQL(new Date().toISOString())
-        source[timeField] = now
-    }
     return {
         ...source,
         [key]:uuid(),

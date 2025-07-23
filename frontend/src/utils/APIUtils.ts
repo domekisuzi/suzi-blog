@@ -3,7 +3,7 @@ import axios from 'axios'
 
 
 export const api = axios.create({
-    baseURL: 'http://localhost:3001/api', // 可通过 .env 管理
+    baseURL: 'http://localhost:8080/api', // 可通过 .env 管理
     timeout: 10000,
     withCredentials: true
 })

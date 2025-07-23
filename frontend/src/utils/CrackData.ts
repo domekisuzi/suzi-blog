@@ -53,10 +53,3 @@ export const mockSubTask:Subtask[] =
         { id: 'sub-4', title: '优化状态管理逻辑', completed: false, createdAt: '2025-07-05T11:40:00Z' }
     ]
 
-// export interface Subtask {
-//     id: string
-//     title: string
-//     completed: boolean
-//     createdAt: string
-//     updatedAt?: string
-// }
