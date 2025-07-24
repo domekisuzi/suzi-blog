@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @MappedSuperclass
-@NoArgsConstructor
+@NoArgsConstructor // Lombok will generate a no-args constructor, if do not have it, project will not work well 
 public abstract class BaseEntity {
     @Id
     private String id;

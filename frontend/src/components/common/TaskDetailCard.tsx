@@ -17,6 +17,7 @@ import { Task } from '../../features/tasks/types'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { dateUtils } from '../../utils/DateUtil'
+ 
 
 interface Props {
     task: Task
@@ -29,7 +30,14 @@ interface Props {
 export default function TaskDetailCard({ task, isEditing = false, onChange }: Props) {
     const handleFieldChange = (field: keyof Task) => (e: any) => {
         const value = e.target.value
-        onChange?.({ ...task, [field]: value })  // a new grammar named optional chaining,it avoids use the function  of null which causes error
+        console.log ('FieldChange', field, value)
+        if(onChange){
+            // onChange?.({ ...task, [field]: value })  // a new grammar named optional chaining,it avoids use the function  of null which causes error
+            const newValue:Task = { ...task, [field]: value } 
+            onChange(newValue) // update the task with the new value
+            console.log('onChange', newValue)
+        }
+      
     }
 
     return (

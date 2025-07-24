@@ -90,7 +90,6 @@ const TaskPage: React.FC=() => {
         deleteTask(task.id).then(
             ()=>{
                 setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
-
             }
         )
     }
@@ -115,10 +114,10 @@ const TaskPage: React.FC=() => {
         }
         createTask(withUUID<Task>(taskData) ).then((res)=>{
             if(res){
-                //这里填充等待和成功逻辑
-
+                   //TODO('create the update success animation to alert user')
+                freshTasksList()
             }
-            console.log(taskData.dueDate)
+            // console.log(taskData.dueDate)
             console.log("创建任务成功")
         }).catch(
             (error)=>{
@@ -134,25 +133,33 @@ const TaskPage: React.FC=() => {
         if(nowDetailTask) {
            
             updateTask(nowDetailTask.id, nowDetailTask).then(() => {
-                console.log("update success!")
+                console.log("update success!",nowDetailTask)
+                //TODO('create the update success animation to alert user')
+                setTaskList(pre => pre ? pre.map(task => task.id === nowDetailTask?.id ? nowDetailTask : task) : [])
+                setEditTaskOpen(false)
             })
+
         }
         else{
             console.log("update failed, item does not exist")
+            setEditTaskOpen(false)
         }
     }
-
-    useEffect(()=>{
+    const freshTasksList = () => {
         fetchTasks().then(
-            (res)=>{
+            (res) => {
                 console.log(res)
                 setTaskList(res)
             }
         ).catch(
-            (error)=>{
+            (error) => {
                 console.error("获取任务失败", error)
             }
-        ) 
+        )
+    }
+
+    useEffect(()=>{
+        freshTasksList()
         console.log("effect works")
     },[])
 
@@ -373,9 +380,11 @@ const TaskPage: React.FC=() => {
                     修改任务
                 </DialogTitle>
                 <DialogContent dividers>
-                    {
-                        nowDetailTask &&
+                    {  
+                    nowDetailTask && 
+                  
                         <TaskDetailCard task={nowDetailTask } isEditing={true} onChange={setNowDetailTask }/>
+
                     }
 
                 </DialogContent>

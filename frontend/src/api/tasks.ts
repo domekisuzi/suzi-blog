@@ -18,7 +18,7 @@ export async function createTask(task: Task): Promise<{ id: string }> {
 
 /** 更新任务字段（只传需要更新的字段） */
 export async function updateTask(id: string, updates: Partial<Task>) {
-    await api.patch(`${BASE}/${id}`, updates)
+    await api.put(`${BASE}/${id}`, updates)
 }
 
 /** 删除任务 */
