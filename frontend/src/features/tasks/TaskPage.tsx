@@ -13,20 +13,13 @@ import {
 import {Module, Task, TaskPriority, TaskPriorityValues} from "./types";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../utils/CrackData";
-
 import {createTask, deleteTask, fetchTasks, updateTask} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import { DatePicker } from '@mui/x-date-pickers'
-import { LocalizationProvider } from '@mui/x-date-pickers'
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import TaskDetailCard from "../../components/common/TaskDetailCard";
+import TaskMain from "./TaskMain";
+import TaskDetailCard from "./TaskDetailCard";
 import { dateUtils } from '../../utils/DateUtil';
-import { log } from 'console';
+
+import CreateTaskCard from './CreateTaskCard';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
@@ -93,52 +86,21 @@ const TaskPage: React.FC=() => {
             }
         )
     }
-    const [dueDate, setDueDate] = React.useState<Date | null>(null)
-
-    const formattedDate = dueDate
-        ? dueDate.toISOString().slice(0, 19).replace('T', ' ')
-        : null
-
-    const handleCreateTaskSubmit = (e:React.FormEvent<HTMLFormElement>) =>{
-        e.preventDefault()
-        const formData =  new FormData(e.currentTarget)
-        const taskData = {
-            title: formData.get('title') as string,
-            description: formData.get('description') as string,
-            moduleId: formData.get('moduleId') as string,
-            completed: false,
-            id: "",
-            createdAt: "",
-            priority: formData.get("taskPriority") as TaskPriority,
-            dueDate: dateUtils.toBackendFormat(dueDate) // 这里需要转换为后端格式
-        }
-        createTask(withUUID<Task>(taskData) ).then((res)=>{
-            if(res){
-                   //TODO('create the update success animation to alert user')
-                freshTasksList()
-            }
-            // console.log(taskData.dueDate)
-            console.log("创建任务成功")
-        }).catch(
-            (error)=>{
-                console.log("创建任务失败")
-                console.log(error)
-            }
-        )
+    
+    const handleCreateTaskSubmit = ( ) =>{
+        
         handleCreateTaskClose()
     }
 
     const handleEditTaskSubmit = ()=>{
 
         if(nowDetailTask) {
-           
             updateTask(nowDetailTask.id, nowDetailTask).then(() => {
                 console.log("update success!",nowDetailTask)
                 //TODO('create the update success animation to alert user')
                 setTaskList(pre => pre ? pre.map(task => task.id === nowDetailTask?.id ? nowDetailTask : task) : [])
                 setEditTaskOpen(false)
             })
-
         }
         else{
             console.log("update failed, item does not exist")
@@ -178,8 +140,6 @@ const TaskPage: React.FC=() => {
         }
         return  []
     },[taskList])
-
-
     return(
     <div className={styles.container}>
         this is TaskPage
@@ -198,78 +158,8 @@ const TaskPage: React.FC=() => {
                     {"创建任务"}
                 </DialogTitle>
                 <DialogContent>
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <Box
-                            id="createTaskForm"
-                            component="form"
-                            onSubmit={(e)=> {
-                                handleCreateTaskSubmit(e)
-                            }
-                        }
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2,
-                                py: 2,
-                                px: 1
-                            }}
-                        >
-                            <Typography variant="subtitle1" fontWeight={600}>
-                                📌 基本信息
-                            </Typography>
-
-                            <TextField name="title" variant="standard" label="任务标题" required />
-                            <TextField
-                                name="description"
-                                variant="standard"
-                                label="任务描述"
-                                multiline
-                                minRows={2}
-                            />
-
-                            <Divider sx={{ my: 1 }} />
-                            <Typography variant="subtitle1" fontWeight={600}>
-                                ⚙️ 任务设置
-                            </Typography>
-
-                            <TextField
-                                name="moduleName"
-                                select
-                                variant="standard"
-                                label="模块（可选）"
-                            >
-                                {mockModules.map((data) => (
-                                    <MenuItem key={data.id} value={data.name}>
-                                        {data.name}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-
-                            <TextField
-                                name="taskPriority"
-                                select
-                                variant="standard"
-                                label="优先级"
-                                required
-                            >
-                                {TaskPriorityValues.map((data) => (
-                                    <MenuItem key={data} value={data}>
-                                        {data.charAt(0).toUpperCase() + data.slice(1)}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-
-                            <DatePicker
-                                value={dueDate}
-                                onChange={(newValue) => {
-                                    setDueDate(newValue)
-                                    console.log("change to " + newValue as string)
-                                }}
-
-                            />
-                        </Box>
-                    </LocalizationProvider>
-
+                    <CreateTaskCard  onSubmit={handleCreateTaskSubmit}/>
+            
                 </DialogContent>
 
                 <DialogActions>
@@ -307,51 +197,14 @@ const TaskPage: React.FC=() => {
 
                     {
                         uncompletedTasks?.map((task)=> (
-
-                                <Card key={task.id} className={styles.cardTaskItem}>
-                                    <CardActionArea onClick={ ()=>{
-                                        handleDetailTaskOpen(task)
-                                    } } component="div">
-                                        <ListItem className={styles.taskItem}
-                                                  secondaryAction={
-                                            <>
-                                                <IconButton edge="end" aria-label="edit"  onClick={
-                                                    (e)=>{
-                                                        e.stopPropagation()
-                                                        handleEditTask(task)
-                                                    }
-                                                }>
-                                                    <EditIcon/>
-                                                </IconButton>
-                                                <IconButton edge="end" aria-label="delete" onClick={
-                                                    (e)=>{
-                                                        e.stopPropagation()   //stop event propagation to prevent the parent click event
-                                                        handleDeleteTask(task)
-                                                    }
-                                                }>
-                                                    <DeleteIcon/>
-                                                </IconButton>
-                                            </>
-                                        }
-                                        >
-                                            <div className={styles.taskTitle}>
-                                                <p>{(task.module && task.module.name)}</p>
-                                                <p> {(task.completed ? "Completed" : "In progress")}</p>
-
-                                            </div>
-
-                                            <ListItemText className={styles.taskButton} primary={task.title}
-                                                          secondary={task.description}
-                                            />
-
-
-
-                                        </ListItem>
-                                    </CardActionArea>
-                                </Card>
+                                  <TaskMain sx={{margin:1}}
+                                            task={task}
+                                            onClick={() => handleDetailTaskOpen(task)}
+                                            onDelete={handleDeleteTask}
+                                            onEdit={handleEditTask}
+                                            /> 
                         )
                     )
-
                     }
                 </List>
             </div>

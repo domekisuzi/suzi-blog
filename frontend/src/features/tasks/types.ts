@@ -5,6 +5,7 @@ export interface Subtask {
     completed: boolean
     createdAt: string
     updatedAt?: string
+    taskId: string // 关联的主任务ID
 }
 
 // 任务优先级枚举
