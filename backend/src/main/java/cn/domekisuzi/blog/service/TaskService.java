@@ -9,71 +9,26 @@ import java.util.List;
 import java.util.Optional;
 import cn.domekisuzi.blog.repository.SubtaskRepository;
 import cn.domekisuzi.blog.model.Subtask;
-@Service
-@RequiredArgsConstructor
-public class TaskService {
 
-    private final TaskRepository taskRepository;
+public interface TaskService {
 
-    private final SubtaskRepository subtaskRepository;
-
-    // 获取所有任务
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
-    }
-
+       public List<Task> getAllTasks() ;
     // 根据 ID 获取单个任务
-    public Optional<Task> getTaskById(String id) {
-        return taskRepository.findById(id);
-    }
+    public Optional<Task> getTaskById(String id) ;
 
     // 创建新任务
-    public Task createTask(Task task) {
-        task.setDueDate(TimeUtils.parse(task.getDueDate().toString()));
-        task.setCreatedAt(TimeUtils.now());
-        task.setUpdatedAt(TimeUtils.now());
-        return taskRepository.save(task);
-    }
+    public Task createTask(Task task);
 
     // 更新任务（需先查找原任务）
-    public Task updateTask(String id, Task updates) {
-        Task existing = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
-
-        existing.setTitle(updates.getTitle());
-        existing.setDescription(updates.getDescription());
-        existing.setCompleted(updates.getCompleted());
-        existing.setPriority(updates.getPriority());
-        existing.setDueDate(updates.getDueDate());
-        existing.setUpdatedAt(updates.getUpdatedAt());
-        existing.setModule(updates.getModule());
-        existing.setCategory(updates.getCategory());
-
-        existing.setSubtasks(updates.getSubtasks());
-
-        return taskRepository.save(existing);
-    }
+    public Task updateTask(String id, Task updates) ;
+   
 
     // 删除任务
-    public void deleteTask(String id) {
-        taskRepository.deleteById(id);
-    }
+    public void deleteTask(String id) ;
 
+    public List<Task> getTasksByModule(String moduleId) ;
+    public List<Subtask> getSubtasksForTask(String taskId)  ;
 
-public List<Task> getTasksByModule(String moduleId) {
-    return taskRepository.findByModuleId(moduleId);
-}
-
-public List<Subtask> getSubtasksForTask(String taskId) {
-    return subtaskRepository.findByTaskId(taskId);
-}
-
-public long countCompletedTasksInModule(String moduleId) {
-    return taskRepository.findByModuleId(moduleId)
-                         .stream()
-                         .filter(Task::getCompleted)
-                         .count();
-}
-
-
-}
+    public long countCompletedTasksInModule(String moduleId) ;
+        
+}  

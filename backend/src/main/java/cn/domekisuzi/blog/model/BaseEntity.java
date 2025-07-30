@@ -31,4 +31,7 @@ public abstract class BaseEntity {
             this.id = UUID.randomUUID().toString();
         }
     }
+
+
+    
 }

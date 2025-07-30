@@ -21,11 +21,13 @@ import CardActionArea from '@mui/material/CardActionArea';
 
 
 interface Props {
+    key?:string  
     task: Task
     onDelete:(nowTask: Task) => void  
     onEdit: (nowTask: Task) => void  
     onClick: () => void // this function is used for clicking the task, it is optional, if not set, the task will not be clickable
     sx ?: React.CSSProperties // this is used for setting the style of the task card, it is optional, if not set, the default style will be used
+    addSubTaskClick: () => void 
 }
 /**
  * component for displaying the main task information,and is used in the task list
@@ -33,7 +35,7 @@ interface Props {
 *  @returns 
  */
 
-export default function TaskMain({task,onClick,onDelete,onEdit,sx}:Props){
+export default function TaskMain({key,task,onClick,onDelete,onEdit,sx,addSubTaskClick}:Readonly<Props>){
 
     return (    
            <Card  sx={sx} >
@@ -56,7 +58,11 @@ export default function TaskMain({task,onClick,onDelete,onEdit,sx}:Props){
                         <Typography  variant="h6" gutterBottom>
                             {task.title}
                         </Typography>
-                        <Button variant="outlined" size="small" color="success"  >
+                        <Button variant="outlined" size="small" color="success"  onClick={(e)=>
+                            {
+                                e.stopPropagation()
+                                addSubTaskClick()
+                                }} >
                             Add Subtask
                         </Button>   
                     </Box>
@@ -80,7 +86,6 @@ export default function TaskMain({task,onClick,onDelete,onEdit,sx}:Props){
                                                 <IconButton edge="end" aria-label="delete" onClick={
                                                     (e)=>{
                                                         e.stopPropagation()   //stop event propagation to prevent the parent click event
-                            
                                                         onDelete(task) // call the onDelete function if it is set
                                                     }
                                                 }>

@@ -10,7 +10,6 @@ import {createTask} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap"; 
 import { dateUtils } from '../../utils/DateUtil';
 interface Props {
-
     onSubmit:() => void
 }
 

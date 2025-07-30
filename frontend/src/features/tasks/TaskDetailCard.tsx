@@ -112,7 +112,6 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                     </List>
                 </>
             )}
-
         </Box>
     )
 }

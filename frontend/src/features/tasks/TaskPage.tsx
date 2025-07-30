@@ -10,7 +10,7 @@ import {
     TextField,
     Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton
 } from "@mui/material";
-import {Module, Task, TaskPriority, TaskPriorityValues} from "./types";
+import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "./types";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../utils/CrackData";
 import {createTask, deleteTask, fetchTasks, updateTask} from "../../api/tasks";
@@ -18,7 +18,7 @@ import {withUUID} from "../../utils/DataWrap";
 import TaskMain from "./TaskMain";
 import TaskDetailCard from "./TaskDetailCard";
 import { dateUtils } from '../../utils/DateUtil';
-
+import CreateSubTaskCard from './CreateSubTaskCard';
 import CreateTaskCard from './CreateTaskCard';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
@@ -32,6 +32,8 @@ const TaskPage: React.FC=() => {
 
     const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
     const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
+    
+    const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
 
 
     // used  for detail task
@@ -41,6 +43,13 @@ const TaskPage: React.FC=() => {
     const [editTaskOpen,setEditTaskOpen] = React.useState(false)
 
 
+    const handleCreateSubTaskOpen = (task:Task) => {
+        setNowDetailTask(task)
+        setCreateSubTaskOpen(true);
+    }
+    const handleCreateSubTaskClose = () => {
+        setCreateSubTaskOpen(false);
+    };
     const handleCreateTaskOpen = () => {
         setCreateTaskOpen(true);
     };
@@ -55,6 +64,7 @@ const TaskPage: React.FC=() => {
     const handleEditTaskClose = () => {
         setEditTaskOpen(false);
     };
+
 
 
     const handleDetailTaskOpen = (task:Task) => {
@@ -90,6 +100,7 @@ const TaskPage: React.FC=() => {
     const handleCreateTaskSubmit = ( ) =>{
         
         handleCreateTaskClose()
+        freshTasksList()  
     }
 
     const handleEditTaskSubmit = ()=>{
@@ -106,6 +117,11 @@ const TaskPage: React.FC=() => {
             console.log("update failed, item does not exist")
             setEditTaskOpen(false)
         }
+    }
+
+    const handleCreateSubTaskSubmit = ()=>{
+        handleCreateSubTaskClose()
+        freshTasksList()  
     }
     const freshTasksList = () => {
         fetchTasks().then(
@@ -197,11 +213,12 @@ const TaskPage: React.FC=() => {
 
                     {
                         uncompletedTasks?.map((task)=> (
-                                  <TaskMain sx={{margin:1}}
+                                  <TaskMain key={task.id} sx={{margin:1}}
                                             task={task}
                                             onClick={() => handleDetailTaskOpen(task)}
                                             onDelete={handleDeleteTask}
                                             onEdit={handleEditTask}
+                                            addSubTaskClick={() => handleCreateSubTaskOpen(task) }
                                             /> 
                         )
                     )
@@ -247,6 +264,51 @@ const TaskPage: React.FC=() => {
                         提交
                     </Button>
                     <Button onClick={handleEditTaskClose} autoFocus>
+                        关闭
+                    </Button>
+                </DialogActions>
+
+            </Dialog>
+
+
+              <Dialog  open={detailTaskOpen} className={styles.taskDetail} onClose={handleDetailTaskClose}>
+                <DialogTitle>
+                    任务详情
+                </DialogTitle>
+                <DialogContent dividers>{
+                    nowDetailTask && (
+                            <TaskDetailCard task={nowDetailTask} isEditing={false}   />
+                    )
+                }
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDetailTaskClose} autoFocus>
+                        关闭
+                    </Button>
+                </DialogActions>
+            </Dialog >
+
+           
+
+            <Dialog  open={createSubTaskOpen} onClose={handleCreateSubTaskClose}>
+                <DialogTitle >
+                    添加子任务
+                </DialogTitle>
+                <DialogContent dividers>
+                    {  
+                    nowDetailTask && 
+                  
+                        <CreateSubTaskCard   taskId={nowDetailTask.id}  onSubmit={handleCreateSubTaskSubmit}  />
+
+                    }
+
+                </DialogContent>
+                <DialogActions>
+
+                   <Button type="submit" form="createSubTaskForm">
+                        提交
+                    </Button>
+                    <Button onClick={handleCreateSubTaskClose} autoFocus>
                         关闭
                     </Button>
                 </DialogActions>
