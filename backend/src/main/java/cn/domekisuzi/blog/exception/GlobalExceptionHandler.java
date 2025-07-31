@@ -40,6 +40,7 @@ private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler
                 ex.getMessage(),
                 request.getDescription(false)
         );
+        ex.printStackTrace();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
     

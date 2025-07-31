@@ -12,6 +12,7 @@ import cn.domekisuzi.blog.service.SubtaskService;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import java.util.stream.Collectors;
@@ -41,6 +42,8 @@ public class SubtaskServiceImpl implements SubtaskService {
 
         Subtask subtask = toEntity(dto);
         subtask.setTask(task); // 关联任务
+        subtask.setCreatedAt(LocalDateTime.now());
+        subtask.setUpdatedAt(LocalDateTime.now());
         Subtask saved = subtaskRepo.save(subtask);
         return toDTO(saved);
     }
@@ -64,12 +67,14 @@ public class SubtaskServiceImpl implements SubtaskService {
 
     // ---------- DTO ↔ Entity 映射 ----------   ??
     private SubtaskDTO toDTO(Subtask subtask) {
-        return new SubtaskDTO(
-            subtask.getId(),
-            subtask.getTitle(),
-            subtask.getCompleted(),
-            subtask.getTask().getId()
-        );
+        SubtaskDTO dto = new SubtaskDTO();
+    
+        dto.setId(subtask.getId());
+
+        dto.setTitle(subtask.getTitle());
+        dto.setCompleted(subtask.getCompleted());
+        dto.setTaskId(subtask.getTask().getId());
+        return dto;
     }
 
     private Subtask toEntity(SubtaskDTO dto) {

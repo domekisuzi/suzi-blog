@@ -1,5 +1,5 @@
 import {api} from '../utils/APIUtils'
-import {Task} from "../features/tasks/types";
+import {Task,Subtask} from "../features/tasks/types";
 
 
 
@@ -25,3 +25,38 @@ export async function updateTask(id: string, updates: Partial<Task>) {
 export async function deleteTask(id: string) {
     await api.delete(`${BASE}/${id}`)
 }
+
+// "/api/tasks/{taskId}/subtasks")
+ export async function getSubtasks (taskId: string): Promise<Subtask>  {
+   const res = await api.get(`/tasks/${taskId}/subtasks`);
+   return res.data;
+};
+
+export async function createSubtask  (
+  taskId: string,
+  payload: { title: string }
+) : Promise<Subtask>  {
+    const res = await api.post(`/tasks/${taskId}/subtasks`, {
+    title: payload.title,
+    completed: false
+  });
+
+  return res.data;
+};
+
+export async function updateSubtask (
+  taskId: string,
+  subtaskId: string,
+  payload: Partial<Subtask>
+)  : Promise<Subtask> {
+   const   res = await api.put(`/tasks/${taskId}/subtasks/${subtaskId}`, payload);
+   return res.data
+};
+
+export async function deleteSubtask  (
+  taskId: string,
+  subtaskId: string
+): Promise<void>  {
+  await api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`);
+}; 
+ 

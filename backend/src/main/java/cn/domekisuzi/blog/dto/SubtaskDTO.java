@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
  */
 
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
-public class SubtaskDTO {
+public class SubtaskDTO extends BaseDTO {
 
     /**
      * 子任务唯一标识

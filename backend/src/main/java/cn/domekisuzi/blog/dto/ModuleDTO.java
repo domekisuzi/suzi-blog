@@ -11,8 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
- 
-public class ModuleDTO {
+public class ModuleDTO extends BaseDTO {
 
     /**
      * 模块唯一标识

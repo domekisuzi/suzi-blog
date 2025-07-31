@@ -13,11 +13,10 @@ import lombok.Data;
 /**
  * 任务数据传输对象 —— 用于任务卡片展示、任务详情页、创建/编辑接口
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskDTO {
+public class TaskDTO extends BaseDTO {
 
     /**
      * 任务唯一标识

@@ -1,5 +1,8 @@
 
 package cn.domekisuzi.blog.model;
+import jakarta.annotation.Generated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import java.util.UUID;
@@ -19,10 +22,11 @@ import lombok.NoArgsConstructor;
  * By using this base class, we can avoid code duplication and ensure consistent ID generation across all
  */
 @Data
-@MappedSuperclass
+@MappedSuperclass // This class will not be mapped to a database table, but its fields will be inherited by subclasses
 @NoArgsConstructor // Lombok will generate a no-args constructor, if do not have it, project will not work well 
 public abstract class BaseEntity {
     @Id
+    @GeneratedValue(strategy =  GenerationType.UUID)
     private String id;
 
     @PrePersist
@@ -30,6 +34,7 @@ public abstract class BaseEntity {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
         }
+        System.out.println("触发po层UUID生成" + this.id);
     }
 
 

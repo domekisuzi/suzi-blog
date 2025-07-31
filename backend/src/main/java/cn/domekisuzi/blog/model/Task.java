@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
  
 
 @Entity
@@ -23,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class Task   extends BaseEntity {
     @Id
     private String id;
+
     private String title;
     private String description;
     private Boolean completed;
@@ -35,16 +38,16 @@ public class Task   extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "module_id")
+    @JsonBackReference
     private Module module;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    @JsonManagedReference // 处理循环引用
     private List<Subtask> subtasks;
 
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category category;
-
-     
-    
+    @JsonBackReference // 处理循环引用
+    private Category category;   
 }
