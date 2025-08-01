@@ -4,78 +4,213 @@ import cn.domekisuzi.blog.model.Task;
 import cn.domekisuzi.blog.repository.TaskRepository;
 import cn.domekisuzi.utils.TimeUtils;
 import lombok.RequiredArgsConstructor;
+
+
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import cn.domekisuzi.blog.repository.SubtaskRepository;
-import cn.domekisuzi.blog.model.Subtask;
-import cn.domekisuzi.blog.service.TaskService;
+import java.util.stream.Collectors;
 
+import cn.domekisuzi.blog.repository.ModuleRepository;
+import cn.domekisuzi.blog.repository.SubtaskRepository;
+import cn.domekisuzi.blog.dto.SubtaskDTO;
+import cn.domekisuzi.blog.dto.TaskDTO;
+import cn.domekisuzi.blog.model.Subtask;
+import cn.domekisuzi.blog.model.Module;
+import cn.domekisuzi.blog.service.TaskService;
+ 
 
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl  implements TaskService {
 
+
     private final TaskRepository taskRepository;
+    private final ModuleRepository moduleRepository;
 
-    private final SubtaskRepository subtaskRepository;
-
-    // 获取所有任务
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    @Override
+    public List<TaskDTO> getAllTasks() {
+        List<Task> tasks = taskRepository.findAll();
+        return tasks.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    // 根据 ID 获取单个任务
-    public Optional<Task> getTaskById(String id) {
-        return taskRepository.findById(id);
+    @Override
+    public TaskDTO getTaskById(String id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
+        return convertToDto(task);
     }
 
-    // 创建新任务
-    public Task createTask(Task task) {
-        task.setDueDate(TimeUtils.parse(task.getDueDate().toString()));
-        task.setCreatedAt(TimeUtils.now());
-        task.setUpdatedAt(TimeUtils.now());
-        return taskRepository.save(task);
+    @Override
+    public TaskDTO createTask(TaskDTO dto) {
+        Task task = convertToEntity(dto);
+        task.setId(null); // 确保 ID 由数据库生成
+        Task saved = taskRepository.save(task);
+        return convertToDto(saved);
     }
 
-    // 更新任务（需先查找原任务）
-    public Task updateTask(String id, Task updates) {
-        Task existing = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        existing.setTitle(updates.getTitle());
-        existing.setDescription(updates.getDescription());
-        existing.setCompleted(updates.getCompleted());
-        existing.setPriority(updates.getPriority());
-        existing.setDueDate(updates.getDueDate());
-        existing.setUpdatedAt(updates.getUpdatedAt());
-        existing.setModule(updates.getModule());
-        existing.setCategory(updates.getCategory());
+    @Override
+    public TaskDTO updateTask(String id, TaskDTO dto) {
+        Task existing = taskRepository.findById( id)
+                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
 
-        existing.setSubtasks(updates.getSubtasks());
+        existing.setTitle(dto.getTitle());
+        existing.setDescription(dto.getDescription());
+        existing.setPriority( dto.getPriority());
+        existing.setCompleted(dto.isCompleted());
+        existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
 
-        return taskRepository.save(existing);
+        if (dto.getModuleName() != null) {
+            Module module = moduleRepository.findByName(dto.getModuleName())
+                    .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
+            existing.setModule(module);
+        }
+
+        Task updated = taskRepository.save(existing);
+        return convertToDto(updated);
     }
 
-    // 删除任务
+    @Override
     public void deleteTask(String id) {
-        taskRepository.deleteById(id);
+        Task task = taskRepository.findById( id)
+                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
+        taskRepository.delete(task);
     }
 
+    // 🔁 DTO → Entity 映射函数
+    private Task convertToEntity(TaskDTO dto) {
+        Task task = new Task();
+        task.setId( dto.getId() );
+        task.setTitle(dto.getTitle());
+        task.setDescription(dto.getDescription());
+        task.setPriority( dto.getPriority() );
+        task.setCompleted(dto.isCompleted());
+        task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
+        task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
 
-public List<Task> getTasksByModule(String moduleId) {
-    return taskRepository.findByModuleId(moduleId);
-}
+        if (dto.getModuleName() != null) {
+            Module module = moduleRepository.findByName(dto.getModuleName())
+                    .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
+            task.setModule(module);
+        }
 
-public List<Subtask> getSubtasksForTask(String taskId) {
-    return subtaskRepository.findByTaskId(taskId);
-}
+        if (dto.getSubtasks() != null) {
+            List<Subtask> subtasks = dto.getSubtasks().stream()
+                .map(this::convertSubtaskToEntity)
+                .collect(Collectors.toList());
+            subtasks.forEach(sub -> sub.setTask(task));
+            task.setSubtasks(subtasks);
+        }
 
-public long countCompletedTasksInModule(String moduleId) {
-    return taskRepository.findByModuleId(moduleId)
-                         .stream()
-                         .filter(Task::getCompleted)
-                         .count();
-}
+        return task;
+    }
+
+    // 🔁 Entity → DTO 映射函数
+    private TaskDTO convertToDto(Task task) {
+        TaskDTO dto = new TaskDTO();
+
+        dto.setId(task.getId().toString());  // can not set id beacause all id is  generated by springboot,and nothing 
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setPriority(task.getPriority() );
+        dto.setCompleted(task.getCompleted());
+        dto.setDueDate(task.getDueDate().toString());
+        dto.setModuleName(task.getModule() != null ? task.getModule().getName() : null);
+        dto.setCreatedAt(task.getCreatedAt().toString() );
+        dto.setUpdatedAt(task.getUpdatedAt().toString() );
+        if (task.getSubtasks() != null) {
+            dto.setSubtasks(task.getSubtasks().stream()
+                .map(this::convertSubtaskToDto)
+                .collect(Collectors.toList()));
+        }
+
+        return dto;
+    }
+
+    // ☑️ Subtask 映射函数（可拓展）
+    private Subtask convertSubtaskToEntity(SubtaskDTO dto) {
+        Subtask sub = new Subtask();
+        sub.setId(dto.getId());
+        sub.setTitle(dto.getTitle());
+        sub.setCompleted(dto.isCompleted());
+        // sub.setOtherFields(...) 如有扩展
+        return sub;
+    }
+
+    private SubtaskDTO convertSubtaskToDto(Subtask sub) {
+        SubtaskDTO dto = new SubtaskDTO();
+        dto.setId(sub.getId().toString());
+        dto.setTitle(sub.getTitle());
+        dto.setCompleted(sub.getCompleted());
+        return dto;
+    
+    }
+//     private final TaskRepository taskRepository;
+
+//     private final SubtaskRepository subtaskRepository;
+
+//     // 获取所有任务
+//     public List<Task> getAllTasks() {
+//         return taskRepository.findAll();
+//     }
+
+//     // 根据 ID 获取单个任务
+//     public Optional<Task> getTaskById(String id) {
+//         return taskRepository.findById(id);
+//     }
+
+//     // 创建新任务
+//     public Task createTask(Task task) {
+//         task.setDueDate(TimeUtils.parse(task.getDueDate().toString()));
+//         task.setCreatedAt(TimeUtils.now());
+//         task.setUpdatedAt(TimeUtils.now());
+//         return taskRepository.save(task);
+//     }
+
+//     // 更新任务（需先查找原任务）
+//     public Task updateTask(String id, Task updates) {
+//         Task existing = taskRepository.findById(id)
+//                 .orElseThrow(() -> new RuntimeException("Task not found"));
+
+//         existing.setTitle(updates.getTitle());
+//         existing.setDescription(updates.getDescription());
+//         existing.setCompleted(updates.getCompleted());
+//         existing.setPriority(updates.getPriority());
+//         existing.setDueDate(updates.getDueDate());
+//         existing.setUpdatedAt(updates.getUpdatedAt());
+//         existing.setModule(updates.getModule());
+//         existing.setCategory(updates.getCategory());
+
+//         existing.setSubtasks(updates.getSubtasks());
+
+//         return taskRepository.save(existing);
+//     }
+
+//     // 删除任务
+//     public void deleteTask(String id) {
+//         taskRepository.deleteById(id);
+//     }
+
+
+// public List<Task> getTasksByModule(String moduleId) {
+//     return taskRepository.findByModuleId(moduleId);
+// }
+
+// public List<Subtask> getSubtasksForTask(String taskId) {
+//     return subtaskRepository.findByTaskId(taskId);
+// }
+
+// public long countCompletedTasksInModule(String moduleId) {
+//     return taskRepository.findByModuleId(moduleId)
+//                          .stream()
+//                          .filter(Task::getCompleted)
+//                          .count();
+// }
 
 }

@@ -30,7 +30,7 @@ public abstract class BaseEntity {
     private String id;
 
     @PrePersist
-    public void generateId() {
+    public void generateId() {  //目前这个代码没什么用,是由自动生成的注解完成的,
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
         }

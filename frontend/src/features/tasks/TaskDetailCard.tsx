@@ -11,7 +11,8 @@ import {
     List,
     ListItem,
     ListItemIcon,
-    ListItemText
+    ListItemText,
+    IconButton
 } from '@mui/material'
 import { Task } from './types'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -101,8 +102,16 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                         {task.subtasks?.map(sub => (
                             <ListItem key={sub.id}>
                                 <ListItemIcon>
-                                    {sub.completed ? <CheckCircleIcon color="success"/> :
-                                        <RadioButtonUncheckedIcon color="disabled"/>}
+                                    {sub.completed ?
+                                    <IconButton onClick={()=>{sub.completed = false} }>
+                                         <CheckCircleIcon color="success"/> 
+                                    </IconButton>
+                                   :
+                                    <IconButton onClick={()=>{sub.completed = true}} >
+                                        <RadioButtonUncheckedIcon color="disabled"/>
+                                    </IconButton>}
+
+                                    
                                 </ListItemIcon>
                                 <ListItemText primary={sub.title}
                                               secondary={sub.completed ? '已完成' : '未完成'}/>

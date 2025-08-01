@@ -5,7 +5,11 @@ import axios from 'axios'
 export const api = axios.create({
     baseURL: 'http://localhost:8080/api', // 可通过 .env 管理
     timeout: 10000,
-    withCredentials: true
+    withCredentials: true,
+    headers : {
+     'Content-Type': "application/json",
+     'Accept': 'application/json'
+    }
 })
 
 // 全局请求/响应拦截器（可选）

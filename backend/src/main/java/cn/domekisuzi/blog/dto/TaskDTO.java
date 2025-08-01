@@ -1,4 +1,5 @@
 package cn.domekisuzi.blog.dto;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -47,6 +48,9 @@ public class TaskDTO extends BaseDTO {
      * 截止时间（统一格式为 yyyy-MM-ddTHH:mm:ss）
      */
     private String dueDate;
+
+    private String createdAt;
+    private String updatedAt;
 
     /**
      * 是否已完成

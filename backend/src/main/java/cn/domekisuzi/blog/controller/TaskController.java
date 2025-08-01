@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
  import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import cn.domekisuzi.blog.dto.TaskDTO;
 import cn.domekisuzi.blog.model.Task;
 import cn.domekisuzi.blog.repository.TaskRepository;
 import cn.domekisuzi.blog.service.TaskService;
@@ -27,15 +28,17 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task create(@RequestBody @Valid Task task) {
-        task.setCreatedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
-        return repo.save(task);
+    public TaskDTO create(@RequestBody @Valid TaskDTO task) {
+        task.setCreatedAt(LocalDateTime.now().toString());
+        task.setUpdatedAt(LocalDateTime.now().toString());
+
+        return taskService.createTask(task);
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable String id, @RequestBody Task taskInput) {
-        Task updated = taskService.updateTask(id, taskInput);
+    public ResponseEntity<TaskDTO> updateTask(@PathVariable String id, @RequestBody TaskDTO taskInput) {
+        TaskDTO updated = taskService.updateTask(id, taskInput);
         return ResponseEntity.ok(updated);
     }
 
