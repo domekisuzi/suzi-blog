@@ -212,14 +212,19 @@ const TaskPage: React.FC=() => {
                 <List className={styles.taskRoot}>
 
                     {
-                        uncompletedTasks?.map((task)=> (
-                                  <TaskMain key={task.id} sx={{margin:1}}
+                        uncompletedTasks?.map((task)=> ( 
+                            <ListItem key={task.id}  sx={
+                                 { padding:0,alienItems:'stretch'}
+                            } >
+                                <TaskMain sx={{margin:1,width:'400px'}}
                                             task={task}
                                             onClick={() => handleDetailTaskOpen(task)}
                                             onDelete={handleDeleteTask}
                                             onEdit={handleEditTask}
                                             addSubTaskClick={() => handleCreateSubTaskOpen(task) }
-                                            /> 
+                                            />
+                            </ListItem>
+                                 
                         )
                     )
                     }
@@ -315,7 +320,34 @@ const TaskPage: React.FC=() => {
 
             </Dialog>
         </div>
+
+        <table  className={styles.table2} >
+            <tr>
+                <td>
+                
+                <table className={styles.table3} >
+                    <tr><th>表格A</th></tr>
+                    <tr><td>数据1</td></tr>
+                    <tr><td>数据2</td></tr>
+                </table>
+                </td>
+
+                <td>
+                
+                <table className={styles.table1}  >
+                    <tr><th>表格B</th></tr>
+                    <tr><td>数据A</td></tr>
+                    <tr><td>数据B</td></tr>
+                </table>
+                </td>
+            </tr>
+            </table>
+
+ 
+
     </div>
+
+    
     )
 }
 

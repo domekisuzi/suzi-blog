@@ -21,7 +21,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 
 
 interface Props {
-    key?:string  
+     
     task: Task
     onDelete:(nowTask: Task) => void  
     onEdit: (nowTask: Task) => void  
@@ -35,7 +35,7 @@ interface Props {
 *  @returns 
  */
 
-export default function TaskMain({key,task,onClick,onDelete,onEdit,sx,addSubTaskClick}:Readonly<Props>){
+export default function TaskMain({ task,onClick,onDelete,onEdit,sx,addSubTaskClick}:Readonly<Props>){
 
     return (    
            <Card  sx={sx} >

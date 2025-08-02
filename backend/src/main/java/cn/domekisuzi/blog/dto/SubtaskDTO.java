@@ -35,5 +35,5 @@ public class SubtaskDTO extends BaseDTO {
      */
     private String taskId;
 
-    // Getter / Setter
+    // Getter / Setter 
 }

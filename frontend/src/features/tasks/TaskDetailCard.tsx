@@ -29,6 +29,9 @@ interface Props {
 
 
 export default function TaskDetailCard({ task, isEditing = false, onChange }: Props) {
+
+
+
     const handleFieldChange = (field: keyof Task) => (e: any) => {
         const value = e.target.value
         console.log ('FieldChange', field, value)
@@ -40,6 +43,12 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
             // onChange?.({ ...task, [field]: value })  // a new grammar named optional chaining,it avoids use the function  of null which causes error
     }
 
+    const handleSubTaskCompletedChange = (subtaskId: string, completed: boolean) => {
+        const updatedSubtasks = task.subtasks?.map(sub => 
+            sub.id === subtaskId ? { ...sub, completed } : sub
+        ) || []
+        onChange?.({ ...task, subtasks: updatedSubtasks })
+    }
     return (
         <Box sx={{ p: 2 }}>
             {/* 标题 */}
@@ -101,17 +110,20 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                     <List dense>
                         {task.subtasks?.map(sub => (
                             <ListItem key={sub.id}>
-                                <ListItemIcon>
-                                    {sub.completed ?
-                                    <IconButton onClick={()=>{sub.completed = false} }>
-                                         <CheckCircleIcon color="success"/> 
-                                    </IconButton>
-                                   :
-                                    <IconButton onClick={()=>{sub.completed = true}} >
-                                        <RadioButtonUncheckedIcon color="disabled"/>
-                                    </IconButton>}
 
-                                    
+                                <ListItemIcon>
+                                    {isEditing  ?   
+                                    (<IconButton onClick={()=>{ 
+                                        handleSubTaskCompletedChange(sub.id,!sub.completed)
+                                    } }>
+                                      { 
+                                      sub.completed ?  <CheckCircleIcon color="success"/>: <RadioButtonUncheckedIcon color="disabled"/>                                                                      
+                                    }
+                                 </IconButton>):
+                                 
+                                 (sub.completed ?  <CheckCircleIcon color="success"/>: <RadioButtonUncheckedIcon color="disabled"/>                                   )
+                                 }
+ 
                                 </ListItemIcon>
                                 <ListItemText primary={sub.title}
                                               secondary={sub.completed ? '已完成' : '未完成'}/>

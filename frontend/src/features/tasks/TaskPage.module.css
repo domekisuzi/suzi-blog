@@ -30,7 +30,8 @@
 }
 
 .taskRoot{
-    width: 400px;
+    /* min-width: 400px; */
+    /* width: 400px; */
 }
 
 .taskItem{
@@ -56,4 +57,18 @@
 
 .taskButton {
     width: 100%;
+}
+
+.table1{
+ border: 1 solid black ;
+/* z-index: 999; */
+    border-color : black  
+    
+}
+
+.table2{
+    border: 1;
+}
+.table3{
+       border: 1;
 }

@@ -10,15 +10,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import cn.domekisuzi.blog.repository.ModuleRepository;
-import cn.domekisuzi.blog.repository.SubtaskRepository;
 import cn.domekisuzi.blog.dto.SubtaskDTO;
 import cn.domekisuzi.blog.dto.TaskDTO;
 import cn.domekisuzi.blog.model.Subtask;
 import cn.domekisuzi.blog.model.Module;
+import cn.domekisuzi.blog.service.SubtaskService;
 import cn.domekisuzi.blog.service.TaskService;
  
 
@@ -29,6 +28,7 @@ public class TaskServiceImpl  implements TaskService {
 
     private final TaskRepository taskRepository;
     private final ModuleRepository moduleRepository;
+    private final SubtaskService subtaskService;
 
     @Override
     public List<TaskDTO> getAllTasks() {
@@ -71,6 +71,11 @@ public class TaskServiceImpl  implements TaskService {
             existing.setModule(module);
         }
 
+        if(dto.getSubtasks() != null){
+            for (SubtaskDTO subtask   : dto.getSubtasks()) {
+                subtaskService.updateSubtask(existing.getId(), subtask.getId(), subtask);
+            }
+        }
         Task updated = taskRepository.save(existing);
         return convertToDto(updated);
     }
