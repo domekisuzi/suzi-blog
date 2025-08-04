@@ -1,6 +1,6 @@
 import {api} from '../utils/APIUtils'
-import {Task,Subtask} from "../features/tasks/types";
-
+import {Task,Subtask,Module} from "../features/tasks/types";
+ 
 
 
 const BASE = '/tasks'
@@ -60,3 +60,11 @@ export async function deleteSubtask  (
   await api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`);
 }; 
  
+export async function createModule(name:string) :Promise<Module>{
+  const res = await  api.post('/modules', { name });
+  return res.data
+}
+export async function fetchModules():Promise<Module[]>{
+  const res = await api.get('/modules')
+  return res.data 
+}

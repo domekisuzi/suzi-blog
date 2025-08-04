@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import cn.domekisuzi.blog.dto.ModuleDTO;
+import cn.domekisuzi.blog.dto.TaskDTO;
+import cn.domekisuzi.blog.exception.ResourceNotFoundException;
 import cn.domekisuzi.blog.model.Module;
 
 
@@ -83,8 +85,10 @@ public class ModuleServiceImpl implements ModuleService {
                     .map(task -> {
                         TaskDTO t = new TaskDTO();
                         t.setId(task.getId());
-                        t.setName(task.getName());
+                        t.setTitle(task.getTitle());
                         // ...根据 Task 属性补齐你需要展示的字段
+                        t.setCompleted(task.getCompleted());
+                    
                         return t;
                     })
                     .collect(Collectors.toList());

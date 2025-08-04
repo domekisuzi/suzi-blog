@@ -64,12 +64,13 @@ public class TaskServiceImpl  implements TaskService {
         existing.setPriority( dto.getPriority());
         existing.setCompleted(dto.isCompleted());
         existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-
+        
         if (dto.getModuleName() != null) {
             Module module = moduleRepository.findByName(dto.getModuleName())
                     .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
             existing.setModule(module);
         }
+ 
 
         if(dto.getSubtasks() != null){
             for (SubtaskDTO subtask   : dto.getSubtasks()) {

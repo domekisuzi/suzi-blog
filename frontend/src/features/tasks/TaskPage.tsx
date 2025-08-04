@@ -13,13 +13,14 @@ import {
 import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "./types";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../utils/CrackData";
-import {createTask, deleteTask, fetchTasks, updateTask} from "../../api/tasks";
+import {createTask, deleteTask, fetchModules, fetchTasks, updateTask} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap";
 import TaskMain from "./TaskMain";
 import TaskDetailCard from "./TaskDetailCard";
 import { dateUtils } from '../../utils/DateUtil';
 import CreateSubTaskCard from './CreateSubTaskCard';
 import CreateTaskCard from './CreateTaskCard';
+import ModuleCard from './ModuleCard';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
@@ -27,22 +28,32 @@ import CreateTaskCard from './CreateTaskCard';
 const TaskPage: React.FC=() => {
 
     // const taskList:Task[] = mockTasks
-    const moduleList:Module[] = mockModules
+    // const moduleList:Module[] = mockModules
 
 
     const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
     const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
-    
+     
     const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
 
 
     // used  for detail task
     const [nowDetailTask,setNowDetailTask] = React.useState< Task| null>(null)
     const [taskList,setTaskList] = React.useState <Task[]|null>(null)
-
+    const [moduleList,setModuleList] = React.useState <Module[]|null>(null)
+    
     const [editTaskOpen,setEditTaskOpen] = React.useState(false)
 
 
+    const [createModuleOpen,setCreateModuleOpen]  = React.useState(false)
+
+
+    const handleCreateModuleOpen =  ()=>{
+        setCreateModuleOpen(true)
+    }
+    const handleCreateModuleClose = () =>{
+        setCreateModuleOpen(false)
+    }
     const handleCreateSubTaskOpen = (task:Task) => {
         setNowDetailTask(task)
         setCreateSubTaskOpen(true);
@@ -65,8 +76,6 @@ const TaskPage: React.FC=() => {
         setEditTaskOpen(false);
     };
 
-
-
     const handleDetailTaskOpen = (task:Task) => {
         setNowDetailTask(task)
         if(task ) {
@@ -88,6 +97,7 @@ const TaskPage: React.FC=() => {
         setEditTaskOpen(true)
     }
 
+   
     const handleDeleteTask = (task:Task) =>{
 
         deleteTask(task.id).then(
@@ -96,7 +106,10 @@ const TaskPage: React.FC=() => {
             }
         )
     }
-    
+     const handleCreateModuleSubmit = () =>{
+        handleCreateModuleClose()
+        freshModuleList()
+     }
     const handleCreateTaskSubmit = ( ) =>{
         
         handleCreateTaskClose()
@@ -123,6 +136,16 @@ const TaskPage: React.FC=() => {
         handleCreateSubTaskClose()
         freshTasksList()  
     }
+
+    const freshModuleList = () =>{
+        fetchModules().then(
+            (res:Module[]) =>{
+                console.log(res)
+                setModuleList(res ? res:null)
+            }
+        ).catch(error=>console.error("获取module失败",error ))
+    }
+
     const freshTasksList = () => {
         fetchTasks().then(
             (res) => {
@@ -138,6 +161,7 @@ const TaskPage: React.FC=() => {
 
     useEffect(()=>{
         freshTasksList()
+        freshModuleList()
         console.log("effect works")
     },[])
 
@@ -166,7 +190,31 @@ const TaskPage: React.FC=() => {
             <span className={styles.headerItem}>
                  Manage your tasks and projects efficiently
             </span>
+            <Button variant='contained' onClick={handleCreateModuleOpen}>new Module </Button>
             <Button   variant= "contained" onClick={handleCreateTaskOpen}> New Task</Button>
+
+
+            <Dialog open={createModuleOpen}
+                onClose={handleCreateModuleClose}
+                >
+                    <DialogTitle>
+                        {"创建模块"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <ModuleCard onEditing={false} onSubmit={handleCreateModuleSubmit}/>
+                
+                    </DialogContent>
+
+                    <DialogActions>
+                        <Button type="submit" form="createModuleForm">
+                            提交
+                        </Button>
+                        <Button onClick={handleCreateModuleClose} autoFocus>
+                            关闭
+                        </Button>
+                    </DialogActions>
+            </Dialog>
+
             <Dialog open={createTaskOpen}
             onClose={handleCreateTaskClose}
             >
@@ -199,7 +247,7 @@ const TaskPage: React.FC=() => {
                         Modules
                     </h2>
 
-                    {moduleList.map((module)=>(
+                    {moduleList && moduleList.map((module)=>(
 
                             <ListItem key={module.id} className={styles.moduleItem} sx={{padding:0}}>
                                 <ListItemText primary={module.name}/>
@@ -321,28 +369,7 @@ const TaskPage: React.FC=() => {
             </Dialog>
         </div>
 
-        <table  className={styles.table2} >
-            <tr>
-                <td>
-                
-                <table className={styles.table3} >
-                    <tr><th>表格A</th></tr>
-                    <tr><td>数据1</td></tr>
-                    <tr><td>数据2</td></tr>
-                </table>
-                </td>
-
-                <td>
-                
-                <table className={styles.table1}  >
-                    <tr><th>表格B</th></tr>
-                    <tr><td>数据A</td></tr>
-                    <tr><td>数据B</td></tr>
-                </table>
-                </td>
-            </tr>
-            </table>
-
+        
  
 
     </div>

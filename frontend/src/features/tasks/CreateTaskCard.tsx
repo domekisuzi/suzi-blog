@@ -1,24 +1,29 @@
  
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent,Divider} from '@mui/material';
 import { Box, TextField, Typography, MenuItem } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import {  mockModules } from '../../utils/CrackData'; // Assuming these are defined in a mockData file
-import { Task, TaskPriority, TaskPriorityValues} from "./types";
+import {Module, Task, TaskPriority, TaskPriorityValues} from "./types";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import {createTask} from "../../api/tasks";
+import {createTask, fetchModules} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap"; 
 import { dateUtils } from '../../utils/DateUtil';
 interface Props {
     onSubmit:() => void
+
 }
 
 
 
 export default function CreateTaskCard({onSubmit}:Props ) {
     const [dueDate, setDueDate] = React.useState<Date | null>(null);
-
-
+    const [moduleList, setModuleList] = React.useState<Module[] | null>(null);
+   
+     useEffect(() =>{
+            fetchModules().then(res=>setModuleList(res)).catch(error=>console.log(error))
+      
+    },[])
 
     const handleCreateTaskSubmit = (e:React.FormEvent<HTMLFormElement>) =>{ // I am not sure if it's right to  contennt 
             e.preventDefault()
@@ -92,7 +97,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                        variant="standard"
                                        label="模块（可选）"
                                    >
-                                       {mockModules.map((data) => (
+                                       {moduleList && moduleList.map((data) => (
                                            <MenuItem key={data.id} value={data.name}>
                                                {data.name}
                                            </MenuItem>
