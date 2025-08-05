@@ -22,16 +22,17 @@ export default function CreateTaskCard({onSubmit}:Props ) {
    
      useEffect(() =>{
             fetchModules().then(res=>setModuleList(res)).catch(error=>console.log(error))
-      
     },[])
 
     const handleCreateTaskSubmit = (e:React.FormEvent<HTMLFormElement>) =>{ // I am not sure if it's right to  contennt 
             e.preventDefault()
             const formData =  new FormData(e.currentTarget)
+            const module:Module | undefined  =  moduleList?.filter( data=>data.name == formData.get('moduleId') as string )[0]
+            console.log(module)
             const taskData = {
                 title: formData.get('title') as string,
                 description: formData.get('description') as string,
-                moduleId: formData.get('moduleId') as string,
+                moduleName: formData.get('moduleId') as string ,
                 completed: false,
                 id: "",
                 createdAt: "",
@@ -92,7 +93,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                    </Typography>
        
                                    <TextField
-                                       name="moduleName"
+                                       name="moduleId"
                                        select
                                        variant="standard"
                                        label="模块（可选）"

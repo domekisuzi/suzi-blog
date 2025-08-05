@@ -13,7 +13,7 @@ import cn.domekisuzi.blog.model.Subtask;
 
 public interface TaskService {
 
-       public List<TaskDTO> getAllTasks() ;
+    public List<TaskDTO> getAllTasks() ;
     // 根据 ID 获取单个任务
     public TaskDTO getTaskById(String id) ;
 

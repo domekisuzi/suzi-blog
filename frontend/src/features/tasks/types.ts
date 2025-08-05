@@ -25,7 +25,7 @@ export interface Task {
     createdAt: string
     updatedAt?: string
     subtasks?: Subtask[]
-    module?: Module
+    moduleName?: string
 }
 //这个 Module 用于给每个任务指定一个
 export interface Module {

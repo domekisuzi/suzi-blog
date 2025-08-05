@@ -44,7 +44,7 @@ export default function TaskMain({ task,onClick,onDelete,onEdit,sx,addSubTaskCli
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                         <Box display="flex" alignItems="center" gap={1}>
                             <FolderIcon color='primary' sx={{ fontSize: 16 }} />
-                            <Typography variant="subtitle2" color="text.secondary">{task.module ? task.module.name : "" }</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">{task.moduleName  ?  task.moduleName : '-'  }</Typography>
                         </Box>
                     <Chip
                         label={task.completed ? "Completed" : "In Progress"}

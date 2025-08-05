@@ -37,6 +37,8 @@ const TaskPage: React.FC=() => {
     const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
 
 
+    
+
     // used  for detail task
     const [nowDetailTask,setNowDetailTask] = React.useState< Task| null>(null)
     const [taskList,setTaskList] = React.useState <Task[]|null>(null)
@@ -85,7 +87,6 @@ const TaskPage: React.FC=() => {
             setDetailTaskOpen(false)
             alert("unexpected error happen ! ")
         }
-
     };
 
     const handleDetailTaskClose = () => {
@@ -111,7 +112,6 @@ const TaskPage: React.FC=() => {
         freshModuleList()
      }
     const handleCreateTaskSubmit = ( ) =>{
-        
         handleCreateTaskClose()
         freshTasksList()  
     }
@@ -134,7 +134,7 @@ const TaskPage: React.FC=() => {
 
     const handleCreateSubTaskSubmit = ()=>{
         handleCreateSubTaskClose()
-        freshTasksList()  
+        freshTasksList()  //TODO('can not fresh task list by fetch again') 
     }
 
     const freshModuleList = () =>{

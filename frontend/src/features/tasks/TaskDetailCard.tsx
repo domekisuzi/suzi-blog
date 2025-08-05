@@ -76,7 +76,7 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
 
             {/* 模块与分类 */}
             <Typography variant="body2" color="text.secondary" gutterBottom>
-                模块：{task.module?.name ?? '—'} ｜
+                模块：{task.moduleName ?? '—'} ｜
             </Typography>
 
             {/* 截止时间 */}

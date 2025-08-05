@@ -17,7 +17,7 @@ export const mockTasks: Task[] = [
             { id: 'sub-1', title: '定义 Task 类型结构', completed: true, createdAt: '2025-07-01T09:10:00Z' ,taskId:""},
             { id: 'sub-2', title: '设计 TaskForm 表单字段', completed: false, createdAt: '2025-07-01T09:20:00Z' ,taskId:""}
         ],
-        module :{id:"md-1",name:"learn Japanese"},
+        // module :{id:"md-1",name:"learn Japanese"},
     },
     {
         id: 'task-2',
@@ -28,7 +28,7 @@ export const mockTasks: Task[] = [
         dueDate: '2025-07-10',
         createdAt: '2025-06-28T14:00:00Z',
         subtasks: [],
-        module :{id:"md-2",name:"Finance"},
+        // module :{id:"md-2",name:"Finance"},
     },
     {
         id: 'task-3',

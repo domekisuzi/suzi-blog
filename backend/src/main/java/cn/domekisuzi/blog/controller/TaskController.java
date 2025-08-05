@@ -22,16 +22,17 @@ public class TaskController {
     private final TaskService taskService;
 
 
+    //convert it to DTO but not entity     
     @GetMapping
-    public List<Task> getAll() {
-        return repo.findAll();
+    public   ResponseEntity<List<TaskDTO>> getAll() {
+        List<TaskDTO> allTasks = taskService.getAllTasks();
+        return ResponseEntity.ok(allTasks);
     }
 
     @PostMapping
     public TaskDTO create(@RequestBody @Valid TaskDTO task) {
         task.setCreatedAt(LocalDateTime.now().toString());
         task.setUpdatedAt(LocalDateTime.now().toString());
-
         return taskService.createTask(task);
     }
 
