@@ -15,6 +15,8 @@ export const TaskPriorityValues: TaskPriority[] = ['low', 'medium', 'high']
 
 
 // 主任务类型
+// be careful that this entity is used for the show data but not for  directly  access database 
+
 export interface Task {
     id: string
     title: string

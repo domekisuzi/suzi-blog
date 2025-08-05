@@ -27,17 +27,18 @@ export default function CreateTaskCard({onSubmit}:Props ) {
     const handleCreateTaskSubmit = (e:React.FormEvent<HTMLFormElement>) =>{ // I am not sure if it's right to  contennt 
             e.preventDefault()
             const formData =  new FormData(e.currentTarget)
-            const module:Module | undefined  =  moduleList?.filter( data=>data.name == formData.get('moduleId') as string )[0]
-            console.log(module)
+            // const module:Module | undefined  =  moduleList?.filter( data=>data.name == formData.get('moduleId') as string )[0]
+            // console.log(module)
+            const moduleName  =   formData.get('moduleId') as string 
             const taskData = {
                 title: formData.get('title') as string,
                 description: formData.get('description') as string,
-                moduleName: formData.get('moduleId') as string ,
+                moduleName: (moduleName === '') ? undefined : moduleName ,
                 completed: false,
                 id: "",
                 createdAt: "",
                 priority: formData.get("taskPriority") as TaskPriority,
-                dueDate: dateUtils.toBackendFormat(dueDate) // 这里需要转换为后端格式
+                dueDate: dueDate?  dateUtils.toBackendFormat(dueDate) : undefined // 这里需要转换为后端格式
             }
             createTask(withUUID<Task>(taskData) ).then((res)=>{
                 if(res){

@@ -97,7 +97,10 @@ public class TaskServiceImpl  implements TaskService {
         task.setDescription(dto.getDescription());
         task.setPriority( dto.getPriority() );
         task.setCompleted(dto.isCompleted());
-        task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        if( dto.getDueDate() != null & dto.getDueDate() != "") {   
+            task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        }
+        
         task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
         task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
         
@@ -127,7 +130,9 @@ public class TaskServiceImpl  implements TaskService {
         dto.setDescription(task.getDescription());
         dto.setPriority(task.getPriority() );
         dto.setCompleted(task.getCompleted());
-        dto.setDueDate(task.getDueDate().toString());
+        if( task.getDueDate() != null  ){
+            dto.setDueDate(task.getDueDate().toString());
+        }
         dto.setModuleName(task.getModule() != null ? task.getModule().getName() : null);
         dto.setCreatedAt(task.getCreatedAt().toString() );
         dto.setUpdatedAt(task.getUpdatedAt().toString() );
