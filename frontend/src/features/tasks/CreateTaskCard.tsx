@@ -9,6 +9,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import {createTask, fetchModules} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap"; 
 import { dateUtils } from '../../utils/DateUtil';
+import utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
 interface Props {
     onSubmit:() => void
 
@@ -17,9 +19,9 @@ interface Props {
 
 
 export default function CreateTaskCard({onSubmit}:Props ) {
-    const [dueDate, setDueDate] = React.useState<Date | null>(null);
+    const [dueDate, setDueDate] = React.useState<string | null>(null);
     const [moduleList, setModuleList] = React.useState<Module[] | null>(null);
-   
+    dayjs.extend(utc)
      useEffect(() =>{
             fetchModules().then(res=>setModuleList(res)).catch(error=>console.log(error))
     },[])
@@ -38,21 +40,20 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                 id: "",
                 createdAt: "",
                 priority: formData.get("taskPriority") as TaskPriority,
-                dueDate: dueDate?  dateUtils.toBackendFormat(dueDate) : undefined // 这里需要转换为后端格式
+                dueDate: dueDate? dateUtils.toBackendFormat(dueDate) : undefined// 这里需要转换为后端格式
             }
             createTask(withUUID<Task>(taskData) ).then((res)=>{
                 if(res){
                     //TODO('create the update success animation to alert user')
                 }
                 // console.log(taskData.dueDate)
-                console.log("创建任务成功")
+                console.log("创建任务成功",res)
             }).catch(
                 (error)=>{
                     console.log("创建任务失败")
                     console.log(error)
                 }
             )
-            
         }
 
     return (
@@ -67,6 +68,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                        handleCreateTaskSubmit(e)
                                    }
                                 }
+
                                    sx={{
                                        display: 'flex',
                                        flexDirection: 'column',
@@ -121,10 +123,9 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                    </TextField>
        
                                    <DatePicker
-                                       value={dueDate}
+                                        
                                        onChange={(newValue) => {
-                                           setDueDate(newValue)
-                                           console.log("change to " + newValue as string)
+                                           setDueDate( dayjs(newValue).utc().format("YYYY-MM-DDTHH:mm:ss") )
                                        }}
        
                                    />

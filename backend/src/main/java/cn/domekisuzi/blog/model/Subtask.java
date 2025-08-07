@@ -25,6 +25,7 @@ public class Subtask extends BaseEntity {
     
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     private LocalDateTime dueDate;
+    
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

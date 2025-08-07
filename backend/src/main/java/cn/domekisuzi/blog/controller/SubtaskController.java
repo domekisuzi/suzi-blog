@@ -36,6 +36,7 @@ public class SubtaskController {
     public ResponseEntity<SubtaskDTO> createSubtask(@PathVariable String taskId, @RequestBody SubtaskDTO dto) {
         SubtaskDTO created = subtaskService.createSubtask(taskId, dto);
         
+        System.out.println("生成子任务" + created.toString());
         return ResponseEntity.ok(created);
     }
 

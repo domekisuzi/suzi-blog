@@ -27,7 +27,6 @@ interface Props {
 }
 
 
-
 export default function TaskDetailCard({ task, isEditing = false, onChange }: Props) {
 
 
@@ -124,10 +123,15 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                                  (sub.completed ?  <CheckCircleIcon color="success"/>: <RadioButtonUncheckedIcon color="disabled"/>                                   )
                                  }
  
+                            
                                 </ListItemIcon>
                                 <ListItemText primary={sub.title}
-                                              secondary={sub.completed ? '已完成' : '未完成'}/>
-
+                                              secondary={
+                                                sub.completed ? '已完成' : '未完成'
+                                              }/>
+                                {sub.dueDate && <ListItemText primary={"due date :" +sub.dueDate }
+                                            
+                                              />}
                             </ListItem>
                         ))}
                     </List>

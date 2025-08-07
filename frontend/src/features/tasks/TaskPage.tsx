@@ -112,6 +112,7 @@ const TaskPage: React.FC=() => {
         freshModuleList()
      }
     const handleCreateTaskSubmit = ( ) =>{
+        
         handleCreateTaskClose()
         freshTasksList()  
     }

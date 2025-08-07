@@ -34,11 +34,10 @@ export async function deleteTask(id: string) {
 
 export async function createSubtask  (
   taskId: string,
-  payload: { title: string }
+  payload: Partial<Subtask>
 ) : Promise<Subtask>  {
     const res = await api.post(`/tasks/${taskId}/subtasks`, {
-    title: payload.title,
-    completed: false
+    payload
   });
 
   return res.data;

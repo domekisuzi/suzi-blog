@@ -74,7 +74,7 @@ public class TaskServiceImpl  implements TaskService {
  
 
         if(dto.getSubtasks() != null){
-            for (SubtaskDTO subtask   : dto.getSubtasks()) {
+            for (SubtaskDTO subtask : dto.getSubtasks()) {
                 subtaskService.updateSubtask(existing.getId(), subtask.getId(), subtask);
             }
         }

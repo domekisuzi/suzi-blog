@@ -7,6 +7,8 @@ export interface Subtask {
     updatedAt?: string
     dueDate?:string
     taskId: string // 关联的主任务ID
+   
+    
 }
 
 // 任务优先级枚举
@@ -30,6 +32,7 @@ export interface Task {
     subtasks?: Subtask[]
     moduleName?: string
 }
+
 //这个 Module 用于给每个任务指定一个
 export interface Module {
     id: string
