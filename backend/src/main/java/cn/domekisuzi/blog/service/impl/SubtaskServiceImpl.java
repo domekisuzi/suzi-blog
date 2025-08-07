@@ -40,10 +40,14 @@ public class SubtaskServiceImpl implements SubtaskService {
         Task task = taskRepo.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("任务不存在: " + taskId));
 
+        
         Subtask subtask = toEntity(dto);
         subtask.setTask(task); // 关联任务
         subtask.setCreatedAt(LocalDateTime.now());
         subtask.setUpdatedAt(LocalDateTime.now());
+        if(dto.getDueDate() != null && dto.getDueDate() != "") {
+            subtask.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        }
         Subtask saved = subtaskRepo.save(subtask);
         return toDTO(saved);
     }
@@ -71,7 +75,9 @@ public class SubtaskServiceImpl implements SubtaskService {
         SubtaskDTO dto = new SubtaskDTO();
     
         dto.setId(subtask.getId());
-
+        if(subtask.getDueDate() != null){
+            dto.setDueDate(subtask.getDueDate().toString());
+        }
         dto.setTitle(subtask.getTitle());
         dto.setCompleted(subtask.getCompleted());
         dto.setTaskId(subtask.getTask().getId());
@@ -82,6 +88,9 @@ public class SubtaskServiceImpl implements SubtaskService {
         Subtask entity = new Subtask();
         entity.setTitle(dto.getTitle());
         entity.setCompleted(dto.isCompleted());
+        if(dto.getDueDate() != null && dto.getDueDate() != "") {
+            entity.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        }
         return entity;
     }
 }

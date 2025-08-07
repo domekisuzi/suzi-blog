@@ -25,6 +25,8 @@ public class SubtaskDTO extends BaseDTO {
      */
     private String title;
 
+
+    private String dueDate;
     /**
      * 是否已完成
      */

@@ -5,6 +5,7 @@ export interface Subtask {
     completed: boolean
     createdAt: string
     updatedAt?: string
+    dueDate?:string
     taskId: string // 关联的主任务ID
 }
 
@@ -41,4 +42,3 @@ export interface TaskCategory {
     color?: string
     icon?: string
 }
- 

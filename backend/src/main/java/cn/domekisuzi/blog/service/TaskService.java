@@ -27,9 +27,6 @@ public interface TaskService {
     // 删除任务
     public void deleteTask(String id) ;
 
-    // public List<TaskDTO> getTasksByModule(String moduleId) ;
-    // public List<Subtask> getSubtasksForTask(String taskId)  ;
-
-    // public long countCompletedTasksInModule(String moduleId) ;
+   
         
 }  

@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import cn.domekisuzi.blog.model.Module;
+
 import cn.domekisuzi.blog.dto.ModuleDTO;
 import cn.domekisuzi.blog.service.ModuleService;
 import jakarta.validation.Valid;
@@ -32,22 +32,12 @@ public class ModuleController {
     @GetMapping
     public ResponseEntity<List<ModuleDTO>> getAllModules() {
         List<ModuleDTO> modules = moduleService.getAllModules();
-        // List<ModuleDTO> dtos = modules.stream().map(module -> {
-        //     ModuleDTO dto = new ModuleDTO();
-        //     dto.setId(module.getId());
-        //     dto.setName(module.getName());
-        //     return dto;
-        // }).toList();
-
         return ResponseEntity.ok(modules);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ModuleDTO> getModuleById(@PathVariable String id) {
         ModuleDTO module = moduleService.getModuleById(id);
-        // ModuleDTO dto = new ModuleDTO();
-        // dto.setId(module.getId());
-        // dto.setName(module.getName());
         return ResponseEntity.ok(module);
     }
 
