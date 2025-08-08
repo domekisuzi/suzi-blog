@@ -40,14 +40,16 @@ public class SubtaskServiceImpl implements SubtaskService {
         Task task = taskRepo.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("任务不存在: " + taskId));
 
+        System.out.println("子任务----生成" + dto.toString());
         
         Subtask subtask = toEntity(dto);
         subtask.setTask(task); // 关联任务
+        // subtask.setTitle(dto.getTitle());
         subtask.setCreatedAt(LocalDateTime.now());
         subtask.setUpdatedAt(LocalDateTime.now());
-        if(dto.getDueDate() != null && dto.getDueDate() != "") {
-            subtask.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-        }
+        // if(dto.getDueDate() != null && dto.getDueDate() != "") {
+        //     subtask.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        // }
         Subtask saved = subtaskRepo.save(subtask);
         return toDTO(saved);
     }
@@ -88,6 +90,7 @@ public class SubtaskServiceImpl implements SubtaskService {
         Subtask entity = new Subtask();
         entity.setTitle(dto.getTitle());
         entity.setCompleted(dto.isCompleted());
+        // entity.setId(dto.getId()); this will let Hibernate  regard it as a new object
         if(dto.getDueDate() != null && dto.getDueDate() != "") {
             entity.setDueDate(LocalDateTime.parse(dto.getDueDate()));
         }

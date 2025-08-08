@@ -36,9 +36,9 @@ export async function createSubtask  (
   taskId: string,
   payload: Partial<Subtask>
 ) : Promise<Subtask>  {
-    const res = await api.post(`/tasks/${taskId}/subtasks`, {
+    const res = await api.post(`/tasks/${taskId}/subtasks`, 
     payload
-  });
+  );
 
   return res.data;
 };

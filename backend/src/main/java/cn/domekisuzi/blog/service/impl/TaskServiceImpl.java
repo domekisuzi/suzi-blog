@@ -146,12 +146,17 @@ public class TaskServiceImpl  implements TaskService {
         return dto;
     }
 
-    // ☑️ Subtask 映射函数（可拓展）
+    // ☑️ Subtask 映射函数（可拓展） 
     private Subtask convertSubtaskToEntity(SubtaskDTO dto) {
         Subtask sub = new Subtask();
         sub.setId(dto.getId());
         sub.setTitle(dto.getTitle());
         sub.setCompleted(dto.isCompleted());
+        if(dto.getDueDate() != null && dto.getDueDate() != "") //repeat defination of mapper means it's necessary to get a mapper layer
+        {
+            sub.setDueDate(LocalDateTime.parse( dto.getDueDate()));
+        }
+        
         // sub.setOtherFields(...) 如有扩展
         return sub;
     }
@@ -161,6 +166,9 @@ public class TaskServiceImpl  implements TaskService {
         dto.setId(sub.getId().toString());
         dto.setTitle(sub.getTitle());
         dto.setCompleted(sub.getCompleted());
+        if(sub.getDueDate() != null) {
+            dto.setDueDate(sub.getDueDate().toString());
+        }
         return dto;
     }
     

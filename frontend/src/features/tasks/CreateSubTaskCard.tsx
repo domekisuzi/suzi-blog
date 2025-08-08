@@ -28,7 +28,6 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                 taskId:  taskId, // 关联的任务ID
                 completed: false,
                 id: "",
-
                 dueDate :   dueDateNow? dateUtils.toBackendFormat(dueDateNow) : undefined
             } 
             createSubtask(taskId, taskData).then((res)=>{
@@ -36,7 +35,6 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                     //TODO('create the update success animation to alert user')
                 }
                 console.log("创建子任务成功",res)
-
             }).catch(
                 (error)=>{
                     console.log("创建子任务失败",taskData)
