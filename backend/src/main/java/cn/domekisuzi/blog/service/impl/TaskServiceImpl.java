@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import cn.domekisuzi.blog.repository.ModuleRepository;
 import cn.domekisuzi.blog.dto.SubtaskDTO;
 import cn.domekisuzi.blog.dto.TaskDTO;
+import cn.domekisuzi.blog.mapper.SubtaskMapper;
+import cn.domekisuzi.blog.mapper.TaskMapper;
 import cn.domekisuzi.blog.model.Subtask;
 import cn.domekisuzi.blog.model.Module;
 import cn.domekisuzi.blog.service.SubtaskService;
@@ -29,12 +31,13 @@ public class TaskServiceImpl  implements TaskService {
     private final TaskRepository taskRepository;
     private final ModuleRepository moduleRepository;
     private final SubtaskService subtaskService;
+    private final TaskMapper taskMapper;
 
     @Override
     public List<TaskDTO> getAllTasks() {
         List<Task> tasks = taskRepository.findAll();
         return tasks.stream()
-                .map(this::convertToDto)
+                .map(taskMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -42,16 +45,16 @@ public class TaskServiceImpl  implements TaskService {
     public TaskDTO getTaskById(String id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
-        return convertToDto(task);
+        return taskMapper.toDTO(task);
     }
 
     @Override
     public TaskDTO createTask(TaskDTO dto) {
         
-        Task task = convertToEntity(dto);
+        Task task = taskMapper.toEntity(dto);
         task.setId(null); // 确保 ID 由数据库生成
         Task saved = taskRepository.save(task);
-        return convertToDto(saved);
+        return taskMapper.toDTO(saved);
     }
 
 
@@ -65,11 +68,12 @@ public class TaskServiceImpl  implements TaskService {
         existing.setPriority( dto.getPriority());
         existing.setCompleted(dto.isCompleted());
         existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-        
+ 
         if (dto.getModuleName() != null) {
             Module module = moduleRepository.findByName(dto.getModuleName())
                     .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
             existing.setModule(module);
+            
         }
  
 
@@ -79,7 +83,7 @@ public class TaskServiceImpl  implements TaskService {
             }
         }
         Task updated = taskRepository.save(existing);
-        return convertToDto(updated);
+        return taskMapper.toDTO(updated);
     }
 
     @Override
@@ -89,87 +93,87 @@ public class TaskServiceImpl  implements TaskService {
         taskRepository.delete(task);
     }
 
-    // 🔁 DTO → Entity 映射函数
-    private Task convertToEntity(TaskDTO dto) {
-        Task task = new Task();
-        task.setId( dto.getId() );
-        task.setTitle(dto.getTitle());
-        task.setDescription(dto.getDescription());
-        task.setPriority( dto.getPriority() );
-        task.setCompleted(dto.isCompleted());
-        if( dto.getDueDate() != null & dto.getDueDate() != "") {   
-            task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-        }
+    // // 🔁 DTO → Entity 映射函数
+    // private Task convertToEntity(TaskDTO dto) {
+    //     Task task = new Task();
+    //     task.setId( dto.getId() );
+    //     task.setTitle(dto.getTitle());
+    //     task.setDescription(dto.getDescription());
+    //     task.setPriority( dto.getPriority() );
+    //     task.setCompleted(dto.isCompleted());
+    //     if( dto.getDueDate() != null & dto.getDueDate() != "") {   
+    //         task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+    //     }
         
-        task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
-        task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
+    //     task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
+    //     task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
         
-        if (dto.getModuleName() != null) {
-            Module module = moduleRepository.findByName(dto.getModuleName())
-                    .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
-            task.setModule(module);
-        }
+    //     if (dto.getModuleName() != null) {
+    //         Module module = moduleRepository.findByName(dto.getModuleName())
+    //                 .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
+    //         task.setModule(module);
+    //     }
 
-        if (dto.getSubtasks() != null) {
-            List<Subtask> subtasks = dto.getSubtasks().stream()
-                .map(this::convertSubtaskToEntity)
-                .collect(Collectors.toList());
-            subtasks.forEach(sub -> sub.setTask(task));
-            task.setSubtasks(subtasks);
-        }
+    //     if (dto.getSubtasks() != null) {
+    //         List<Subtask> subtasks = dto.getSubtasks().stream()
+    //             .map(SubtaskMapper::toEntity)
+    //             .collect(Collectors.toList());
+    //         subtasks.forEach(sub -> sub.setTask(task));
+    //         task.setSubtasks(subtasks);
+    //     }
 
-        return task;
-    }
+    //     return task;
+    // }
 
-    // 🔁 Entity → DTO 映射函数
-    private TaskDTO convertToDto(Task task) {
-        TaskDTO dto = new TaskDTO();
+    // // 🔁 Entity → DTO 映射函数
+    // private TaskDTO convertToDto(Task task) {
+    //     TaskDTO dto = new TaskDTO();
 
-        dto.setId(task.getId().toString());  // can not set id beacause all id is  generated by springboot,and nothing 
-        dto.setTitle(task.getTitle());
-        dto.setDescription(task.getDescription());
-        dto.setPriority(task.getPriority() );
-        dto.setCompleted(task.getCompleted());
-        if( task.getDueDate() != null  ){
-            dto.setDueDate(task.getDueDate().toString());
-        }
+    //     dto.setId(task.getId().toString());  // can not set id beacause all id is  generated by springboot,and nothing 
+    //     dto.setTitle(task.getTitle());
+    //     dto.setDescription(task.getDescription());
+    //     dto.setPriority(task.getPriority() );
+    //     dto.setCompleted(task.getCompleted());
+    //     if( task.getDueDate() != null  ){
+    //         dto.setDueDate(task.getDueDate().toString());
+    //     }
         
-        dto.setModuleName(task.getModule() != null ? task.getModule().getName() : null);
-        dto.setCreatedAt(task.getCreatedAt().toString() );
-        dto.setUpdatedAt(task.getUpdatedAt().toString() );
-        if (task.getSubtasks() != null) {
-            dto.setSubtasks(task.getSubtasks().stream()
-                .map(this::convertSubtaskToDto)
-                .collect(Collectors.toList()));
-        }
+    //     dto.setModuleName(task.getModule() != null ? task.getModule().getName() : null);
+    //     dto.setCreatedAt(task.getCreatedAt().toString() );
+    //     dto.setUpdatedAt(task.getUpdatedAt().toString() );
+    //     if (task.getSubtasks() != null) {
+    //         dto.setSubtasks(task.getSubtasks().stream()
+    //             .map(SubtaskMapper::toDTO)
+    //             .collect(Collectors.toList()));
+    //     }
 
-        return dto;
-    }
+    //     return dto;
+    // }
 
     // ☑️ Subtask 映射函数（可拓展） 
-    private Subtask convertSubtaskToEntity(SubtaskDTO dto) {
-        Subtask sub = new Subtask();
-        sub.setId(dto.getId());
-        sub.setTitle(dto.getTitle());
-        sub.setCompleted(dto.isCompleted());
-        if(dto.getDueDate() != null && dto.getDueDate() != "") //repeat defination of mapper means it's necessary to get a mapper layer
-        {
-            sub.setDueDate(LocalDateTime.parse( dto.getDueDate()));
-        }
+    // private Subtask convertSubtaskToEntity(SubtaskDTO dto) {
+    //     Subtask sub = new Subtask();
+    //     sub.setId(dto.getId());
+    //     sub.setTitle(dto.getTitle());
+    //     sub.setCompleted(dto.isCompleted());
+    //     if(dto.getDueDate() != null && dto.getDueDate() != "") //repeat defination of mapper means it's necessary to get a mapper layer
+    //     {
+    //         sub.setDueDate(LocalDateTime.parse( dto.getDueDate()));
+    //     }
         
-        // sub.setOtherFields(...) 如有扩展
-        return sub;
-    }
+    //     // sub.setOtherFields(...) 如有扩展
+    //     return sub;
+    // }
 
-    private SubtaskDTO convertSubtaskToDto(Subtask sub) {
-        SubtaskDTO dto = new SubtaskDTO();
-        dto.setId(sub.getId().toString());
-        dto.setTitle(sub.getTitle());
-        dto.setCompleted(sub.getCompleted());
-        if(sub.getDueDate() != null) {
-            dto.setDueDate(sub.getDueDate().toString());
-        }
-        return dto;
-    }
+    // private SubtaskDTO convertSubtaskToDto(Subtask sub) {
+    //     SubtaskDTO dto = new SubtaskDTO();
+    //     dto.setId(sub.getId().toString());
+    //     dto.setTitle(sub.getTitle());
+    //     dto.setCompleted(sub.getCompleted());
+    //     if(sub.getDueDate() != null) {
+    //         dto.setDueDate(sub.getDueDate().toString());
+    //     }
+    //     return dto;
+    // }
     
 }
