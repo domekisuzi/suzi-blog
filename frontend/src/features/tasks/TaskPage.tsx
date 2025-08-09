@@ -21,21 +21,20 @@ import { dateUtils } from '../../utils/DateUtil';
 import CreateSubTaskCard from './CreateSubTaskCard';
 import CreateTaskCard from './CreateTaskCard';
 import ModuleCard from './ModuleCard';
+import MouduleListCard from './ModuleListCard';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
 
 const TaskPage: React.FC=() => {
-
-    // const taskList:Task[] = mockTasks
-    // const moduleList:Module[] = mockModules
-
+ 
 
     const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
     const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
      
     const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
 
+    const [selectedModuleId, setSelectedModuleId] = React.useState<string | undefined>(undefined);
 
     
 
@@ -49,6 +48,7 @@ const TaskPage: React.FC=() => {
 
     const [createModuleOpen,setCreateModuleOpen]  = React.useState(false)
 
+ 
 
     const handleCreateModuleOpen =  ()=>{
         setCreateModuleOpen(true)
@@ -107,6 +107,10 @@ const TaskPage: React.FC=() => {
             }
         )
     }
+    const handleModuleSelect = (id: string) => {
+        setSelectedModuleId(id);
+        // 触发任务筛选逻辑
+    };
      const handleCreateModuleSubmit = () =>{
         handleCreateModuleClose()
         freshModuleList()
@@ -241,21 +245,7 @@ const TaskPage: React.FC=() => {
 
         <div className={styles.taskSection}>
             <div className={styles.module}>
-
-
-                <List>
-                    <h2>
-                        Modules
-                    </h2>
-
-                    {moduleList && moduleList.map((module)=>(
-
-                            <ListItem key={module.id} className={styles.moduleItem} sx={{padding:0}}>
-                                <ListItemText primary={module.name}/>
-                            </ListItem>
-
-                    ))}
-                </List>
+                    <MouduleListCard  modules={moduleList}  onSelect={handleModuleSelect}  selectedModuleId={selectedModuleId}/>
             </div>
             <div className={styles.tasks}>
                 <List className={styles.taskRoot}>

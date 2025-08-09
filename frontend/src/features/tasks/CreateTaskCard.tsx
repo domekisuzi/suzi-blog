@@ -124,9 +124,6 @@ export default function CreateTaskCard({onSubmit}:Props ) {
        
                                    <DatePicker
                                        
-                                       
-
-                                       
                                        onChange={(newValue) => {
                                            setDueDate( dayjs(newValue).utc().format("YYYY-MM-DDTHH:mm:ss") )
                                        }}

@@ -1,6 +1,6 @@
 package cn.domekisuzi.blog.service.impl;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.stream.Collectors;
  
@@ -8,13 +8,11 @@ import cn.domekisuzi.blog.repository.ModuleRepository;
 import lombok.RequiredArgsConstructor;
 
 
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import cn.domekisuzi.blog.dto.ModuleDTO;
-import cn.domekisuzi.blog.dto.TaskDTO;
 import cn.domekisuzi.blog.exception.ResourceNotFoundException;
+import cn.domekisuzi.blog.mapper.ModuleMapper;
 import cn.domekisuzi.blog.model.Module;
 
 
@@ -24,37 +22,27 @@ import cn.domekisuzi.blog.service.ModuleService;
 @RequiredArgsConstructor
 public class ModuleServiceImpl implements ModuleService {
 
-    @Autowired
-    private ModuleRepository moduleRepository;
+  private final ModuleRepository moduleRepository;
+    private final ModuleMapper moduleMapper;
 
     @Override
     public ModuleDTO createModule(ModuleDTO moduleDTO) {
-        Module module = new Module();
-         
-        module.setName(moduleDTO.getName());
-
+        Module module = moduleMapper.toEntity(moduleDTO);
         Module saved = moduleRepository.save(module);
-
-        ModuleDTO result = new ModuleDTO();
-        result.setId(saved.getId());
-        result.setName(saved.getName());
-        result.setTasks(new ArrayList<>()); // 初始可为空
-        return result;
+        return moduleMapper.toDTO(saved);
     }
 
     @Override
     public ModuleDTO getModuleById(String id) {
         Module module = moduleRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
-
-        return convertEntityToDTO(module);
+        return moduleMapper.toDTO(module);
     }
 
     @Override
     public List<ModuleDTO> getAllModules() {
-        List<Module> modules = moduleRepository.findAll();
-        return modules.stream()
-                .map(this::convertEntityToDTO)
+        return moduleRepository.findAll().stream()
+                .map(moduleMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -64,8 +52,7 @@ public class ModuleServiceImpl implements ModuleService {
             .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
         module.setName(moduleDTO.getName());
         Module updated = moduleRepository.save(module);
-
-        return convertEntityToDTO(updated);
+        return moduleMapper.toDTO(updated);
     }
 
     @Override
@@ -73,30 +60,5 @@ public class ModuleServiceImpl implements ModuleService {
         Module module = moduleRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
         moduleRepository.delete(module);
-    }
-
-    private ModuleDTO convertEntityToDTO(Module module) {
-        ModuleDTO dto = new ModuleDTO();
-        dto.setId(module.getId());
-        dto.setName(module.getName());
-
-        if (module.getTasks() != null) {
-            List<TaskDTO> taskDTOs = module.getTasks().stream()
-                    .map(task -> {
-                        TaskDTO t = new TaskDTO();
-                        t.setId(task.getId());
-                        t.setTitle(task.getTitle());
-                        // ...根据 Task 属性补齐你需要展示的字段
-                        t.setCompleted(task.getCompleted());
-                    
-                        return t;
-                    })
-                    .collect(Collectors.toList());
-            dto.setTasks(taskDTOs);
-        } else {
-            dto.setTasks(new ArrayList<>());
-        }
-
-        return dto;
     }
 }

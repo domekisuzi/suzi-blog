@@ -21,10 +21,12 @@ public class Module extends BaseEntity {
 
     private String name;
 
+    @Column(name = "icon_svg")
+    private String iconSVG;
+
     @OneToMany(mappedBy = "module")
     @JsonManagedReference
     private List<Task> tasks;
 
 
-      
 }

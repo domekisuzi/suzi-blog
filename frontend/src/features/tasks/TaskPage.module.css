@@ -21,19 +21,16 @@
     flex-direction: row;
 
 }
-
+/* 
 .module {
     border-radius: 10px;
     margin-right: 30px;
-    /*position: relative;*/
     background-color: cyan;
-}
+} */
 
 .taskRoot{
     /* min-width: 400px; */
-    /* width: 400px; */
-
-    
+    /* width: 400px; */   
 }
 
 .taskItem{

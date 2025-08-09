@@ -37,6 +37,7 @@ export interface Task {
 export interface Module {
     id: string
     name: string
+    iconSVG?: string
 }
 // 分类（可选）
 export interface TaskCategory {

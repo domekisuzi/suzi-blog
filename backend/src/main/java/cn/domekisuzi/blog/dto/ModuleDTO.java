@@ -28,5 +28,7 @@ public class ModuleDTO extends BaseDTO {
      */
     private List<TaskDTO> tasks;
 
+
+    private String iconSVG; 
     // Getter / Setter
 }
