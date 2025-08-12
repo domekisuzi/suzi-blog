@@ -9,6 +9,6 @@ export const renderSvgNode = (node: SvgNode): JSX.Element => {
                 { ...attrs, key: Math.random().toString() }, // key 可优化
                 children?.map(renderSvgNode)
             );
-    console.log("this node is ",svgNode)
+    // console.log("this node is ",svgNode)
   return  svgNode
 };

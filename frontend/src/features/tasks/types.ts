@@ -8,18 +8,14 @@ export interface Subtask {
     dueDate?:string
     taskId: string // 关联的主任务ID
    
-    
 }
 
 // 任务优先级枚举
 export type TaskPriority = 'low' | 'medium' | 'high'
 
 export const TaskPriorityValues: TaskPriority[] = ['low', 'medium', 'high']
-
-
 // 主任务类型
 // be careful that this entity is used for the show data but not for  directly  access database 
-
 export interface Task {
     id: string
     title: string
@@ -32,6 +28,13 @@ export interface Task {
     subtasks?: Subtask[]
     moduleName?: string
 }
+
+
+export interface TaskShowCompletedModule{
+
+    completeRate: string
+}
+
 
 //这个 Module 用于给每个任务指定一个
 export interface Module {
