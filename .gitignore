@@ -6,7 +6,7 @@
 .pnp.js
 /frontend/example
 
-
+*.properties
 # testing
 /coverage
 
