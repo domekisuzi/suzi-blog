@@ -31,4 +31,5 @@ public class ModuleDTO extends BaseDTO {
 
     private String iconSVG; 
     // Getter / Setter
+
 }

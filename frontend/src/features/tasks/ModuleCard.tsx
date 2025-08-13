@@ -15,27 +15,6 @@ export default function ModuleCard  ({ onSubmit,onEditing = false  }:moduleProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // const handleCreate = async () => {
-  //   if (!name.trim()) {
-  //     setError('模块名称不能为空');
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-  //     createModule(name).then(
-  //       (res ) =>{
-  //           console.log(res,'submit module success!')
-          
-  //       }
-  //     )
-  //   } catch (e: any) {
-  //     setError(e.response?.data?.message || '模块创建失败');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleCreateSubTask = (e:React.FormEvent<HTMLFormElement>) =>{
  
                 e.preventDefault()
