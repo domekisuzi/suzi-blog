@@ -123,7 +123,6 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                                  (sub.completed ?  <CheckCircleIcon color="success"/>: <RadioButtonUncheckedIcon color="disabled"/>                                   )
                                  }
  
-                            
                                 </ListItemIcon>
                                 <ListItemText primary={sub.title}
                                               secondary={

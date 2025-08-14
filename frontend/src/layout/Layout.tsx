@@ -6,7 +6,7 @@ import { Box } from '@mui/material';
 const Layout: React.FC<{ children: React.ReactNode }> = ({children}  ) => {
 
     return(
-        <Box sx={{display: 'flex',  alignItems: 'center'}}>
+        <Box bgcolor="#eee" sx={{display: 'flex',  alignItems: 'center'}}>
             <Sidebar/>
             <Box sx={{flexGrow: 1, padding: 2, flex:1, minHeight: '100vh'}}>
                 <Header/>

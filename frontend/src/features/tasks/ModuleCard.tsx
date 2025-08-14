@@ -16,7 +16,6 @@ export default function ModuleCard  ({ onSubmit,onEditing = false  }:moduleProps
   const [error, setError] = useState('');
 
   const handleCreateSubTask = (e:React.FormEvent<HTMLFormElement>) =>{
- 
                 e.preventDefault()
                 const formData =  new FormData(e.currentTarget)
                 const nowName = formData.get('name') as string

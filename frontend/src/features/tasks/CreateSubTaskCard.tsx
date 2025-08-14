@@ -61,17 +61,15 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                                >
                                    
                                    <TextField name="title" variant="standard" label="子任务描述" required />
-                               <LocalizationProvider dateAdapter={AdapterDayjs} 
-                               >
+                               <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                
                                     <DatePicker label="Date"
-
-                                    onChange={ 
-                                        (datepicker) =>{
-                                            setDueDate( dayjs(datepicker).utc().format("YYYY-MM-DDTHH:mm:ss") )
-                                        }
-                                    }  />
-                               </LocalizationProvider>
-                                         
+                                        onChange={ 
+                                            (datepicker) =>{
+                                                setDueDate( dayjs(datepicker).utc().format("YYYY-MM-DDTHH:mm:ss") )
+                                            }
+                                        }  />
+                               </LocalizationProvider>                     
                                </Box>
     );
 }

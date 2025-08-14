@@ -14,7 +14,7 @@
     align-items: center;
     position: relative;
 
-    background-color: antiquewhite;
+    /* background-color: antiquewhite; */
 }
 .taskSection{
     display: flex;

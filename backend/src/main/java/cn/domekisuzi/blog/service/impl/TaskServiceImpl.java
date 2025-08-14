@@ -67,7 +67,10 @@ public class TaskServiceImpl  implements TaskService {
         existing.setDescription(dto.getDescription());
         existing.setPriority( dto.getPriority());
         existing.setCompleted(dto.isCompleted());
-        existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        if(dto.getDueDate()!= null){
+            existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+        }
+       
  
         if (dto.getModuleName() != null) {
             Module module = moduleRepository.findByName(dto.getModuleName())
