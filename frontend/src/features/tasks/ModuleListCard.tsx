@@ -7,7 +7,7 @@ import {
   ListItemIcon,
   ListItemText
 } from '@mui/material';
-import { Module } from './types';
+import { Module } from './taskTypes';
 import { parseSvgToJson } from '../../utils/parseSvgToJson';
 import { renderSvgNode } from '../../utils/renderSvg';
  

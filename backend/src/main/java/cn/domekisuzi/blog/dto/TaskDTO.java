@@ -59,6 +59,4 @@ public class TaskDTO extends BaseDTO {
      * 子任务列表（用于展示聚合结构）
      */
     private List<SubtaskDTO> subtasks;
- 
-
 }

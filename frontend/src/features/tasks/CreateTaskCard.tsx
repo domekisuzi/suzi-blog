@@ -4,7 +4,7 @@ import { Card, CardContent,Divider} from '@mui/material';
 import { Box, TextField, Typography, MenuItem } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import {  mockModules } from '../../utils/CrackData'; // Assuming these are defined in a mockData file
-import {Module, Task, TaskPriority, TaskPriorityValues} from "./types";
+import {Module, Task, TaskPriority, TaskPriorityValues} from "./taskTypes";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import {createTask, fetchModules} from "../../api/tasks";
 import {withUUID} from "../../utils/DataWrap"; 

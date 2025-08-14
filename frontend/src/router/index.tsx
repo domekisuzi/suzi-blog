@@ -9,6 +9,9 @@ const AppRoutes = () => (
     <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/tasks" element={<TaskPage />} />
+        <Route path='/subtasks' element={""} />
+        <Route path='/modules' element={""} />
+        <Route path='/taskStatistics' element={""} />
         <Route path="/books" element={<BookListPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" />} />

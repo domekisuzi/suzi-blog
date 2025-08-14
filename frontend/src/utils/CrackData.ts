@@ -1,4 +1,4 @@
-import {Module, Subtask, Task} from "../features/tasks/types";
+import {Module, Subtask, Task} from "../features/tasks/taskTypes";
 export const mockModules:Module[] = [
     {id:"md-1",name:"learn Japanese"},
     {id:"md-2",name:"Finance"},

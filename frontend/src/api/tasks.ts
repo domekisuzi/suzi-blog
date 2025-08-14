@@ -1,5 +1,5 @@
 import {api} from '../utils/APIUtils'
-import {Task,Subtask,Module} from "../features/tasks/types";
+import {Task,Subtask,Module} from "../features/tasks/taskTypes";
  
 
 

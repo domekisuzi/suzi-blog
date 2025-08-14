@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task } from './types';
+import { Task } from './taskTypes';
 import { Card,CardContent,Button} from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { dateUtils } from '../../utils/DateUtil';

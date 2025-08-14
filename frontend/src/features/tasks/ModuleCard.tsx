@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress } from '@mui/material';
 import { useState } from 'react';
 import { api } from '../../utils/APIUtils';
-import { Module } from './types';
+import { Module } from './taskTypes';
 import { createModule } from '../../api/tasks';
 import { withUUID } from '../../utils/DataWrap';
  

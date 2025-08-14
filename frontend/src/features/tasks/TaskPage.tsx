@@ -10,7 +10,7 @@ import {
     TextField,
     Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton
 } from "@mui/material";
-import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "./types";
+import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "./taskTypes";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../utils/CrackData";
 import {createTask, deleteTask, fetchModules, fetchTasks, updateTask} from "../../api/tasks";
