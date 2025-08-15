@@ -2,7 +2,8 @@
     display: flex;
     flex-direction: column;
     position: relative;
-
+    
+    
     /* background-color: azure; */
     /* 会导致中间children元素有宽度 */
     /*align-items: center;*/
