@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 
 import cn.domekisuzi.blog.dto.ModuleDTO;
 import cn.domekisuzi.blog.service.ModuleService;
+import cn.domekisuzi.blog.vo.ModuleDetailVo;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -54,5 +55,18 @@ public class ModuleController {
         dto.setName(newName);
         ModuleDTO updated = moduleService.updateModule(id, dto);
         return ResponseEntity.ok(updated);
+    }
+
+
+    @GetMapping("/{moduleId}/detail")
+    public ResponseEntity<ModuleDetailVo> getModuleDetail(@PathVariable String moduleId) {
+        ModuleDetailVo moduleDetail = moduleService.getModuleDetail(moduleId);
+        return ResponseEntity.ok(moduleDetail);
+    }
+
+    @GetMapping("/vo")
+    public ResponseEntity<List<ModuleDetailVo>> getAllModuleDetails() {
+        List<ModuleDetailVo> moduleDetails = moduleService.getAllModuleDetails();
+        return ResponseEntity.ok(moduleDetails);
     }
 }

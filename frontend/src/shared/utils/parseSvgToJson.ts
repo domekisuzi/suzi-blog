@@ -34,6 +34,6 @@ export const parseSvgToJson = (svgString: string): SvgNode | null => {
   };
 
   const res =   parseElement(root)
-//   console.log("解析为json为",res)
+  // console.log("解析为json为",res)
   return res;
 };

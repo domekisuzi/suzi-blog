@@ -4,6 +4,8 @@ import cn.domekisuzi.blog.dto.ModuleDTO;
 import cn.domekisuzi.blog.dto.TaskDTO;
 import cn.domekisuzi.blog.model.Module;
 import cn.domekisuzi.blog.model.Task;
+import cn.domekisuzi.blog.vo.ModuleDetailVo;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -47,5 +49,14 @@ public class ModuleMapper {
         dto.setCompleted(task.getCompleted());// it is unsutable to get task because it cause a looper
         // 可扩展更多字段
         return dto;
+    }
+
+    public ModuleDetailVo convertToModuleDetailVo(Module module) {
+        ModuleDetailVo vo = new ModuleDetailVo();
+        vo.setId(module.getId());
+        vo.setName(module.getName());
+        vo.setIconSVG(module.getIconSVG());
+        // 其他字段的映射
+        return vo;
     }
 }
