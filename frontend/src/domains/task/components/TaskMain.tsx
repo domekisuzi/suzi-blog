@@ -1,8 +1,7 @@
 import React from 'react';
-import { Task } from './taskTypes';
+import { Task } from '../model/taskTypes';
 import { Card,CardContent,Button} from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { dateUtils } from '../../utils/DateUtil';
 import { Box } from '@mui/system';
 import Chip from '@mui/material/Chip';  
 import Divider from '@mui/material/Divider';

@@ -1,5 +1,5 @@
-import {api} from '../utils/APIUtils'
-import {Task,Subtask,Module} from "../features/tasks/taskTypes";
+import {api} from '../shared/utils/APIUtils'
+import {Task,Subtask,Module} from "../domains/task/model/taskTypes";
  
 
 

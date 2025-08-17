@@ -10,18 +10,18 @@ import {
     TextField,
     Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton
 } from "@mui/material";
-import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "./taskTypes";
+import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "../model/taskTypes";
 import styles from  "./TaskPage.module.css"
-import {mockModules, mockTasks} from "../../utils/CrackData";
-import {createTask, deleteTask, fetchModules, fetchTasks, updateTask} from "../../api/tasks";
-import {withUUID} from "../../utils/DataWrap";
-import TaskMain from "./TaskMain";
-import TaskDetailCard from "./TaskDetailCard";
-import { dateUtils } from '../../utils/DateUtil';
-import CreateSubTaskCard from './CreateSubTaskCard';
-import CreateTaskCard from './CreateTaskCard';
-import ModuleCard from './ModuleCard';
-import MouduleListCard from './ModuleListCard';
+import {mockModules, mockTasks} from "../../../shared/utils/CrackData";
+import {createTask, deleteTask, fetchModules, fetchTasks, updateTask} from "../../../api/tasks";
+import {withUUID} from "../../../shared/utils/DataWrap";
+import TaskMain from "../components/TaskMain";
+import TaskDetailCard from '../components/TaskDetailCard';
+import { dateUtils } from '../../../shared/utils/DateUtil';
+import CreateSubTaskCard from '../components/CreateSubTaskCard';
+import CreateTaskCard from '../components/CreateTaskCard';
+import ModuleCard from  '../../module/components/ModuleCard';
+import MouduleListCard from '../../module/components/ModuleListCard';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 

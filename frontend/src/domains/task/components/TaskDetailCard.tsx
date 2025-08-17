@@ -14,10 +14,12 @@ import {
     ListItemText,
     IconButton
 } from '@mui/material'
-import { Task } from './taskTypes'
+ 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import { dateUtils } from '../../utils/DateUtil'
+import { Task } from '../model/taskTypes'
+import { dateUtils } from '../../../shared/utils/DateUtil'
+ 
  
 
 interface Props {

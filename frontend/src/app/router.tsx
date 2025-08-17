@@ -1,8 +1,8 @@
 // src/router/index.tsx
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Dashboard from '../pages/Dashboard'
-import TaskPage from '../features/tasks/TaskPage'
-import BookListPage from '../features/booklist/BookListPage'
+import TaskPage from '../domains/task/pages/TaskPage'
+import BookListPage from '../domains/booklist/pages/BookListPage'
 import NotFound from '../pages/NotFound'
 
 const AppRoutes = () => (

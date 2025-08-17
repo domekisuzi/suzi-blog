@@ -3,14 +3,15 @@ import React, { useEffect } from 'react';
 import { Card, CardContent,Divider} from '@mui/material';
 import { Box, TextField, Typography, MenuItem } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import {  mockModules } from '../../utils/CrackData'; // Assuming these are defined in a mockData file
-import {Module, Task, TaskPriority, TaskPriorityValues} from "./taskTypes";
+ 
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import {createTask, fetchModules} from "../../api/tasks";
-import {withUUID} from "../../utils/DataWrap"; 
-import { dateUtils } from '../../utils/DateUtil';
+ 
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
+import { Module, Task, TaskPriority, TaskPriorityValues } from '../model/taskTypes';
+import { createTask, fetchModules } from '../../../api/tasks';
+import { dateUtils } from '../../../shared/utils/DateUtil';
+import { withUUID } from '../../../shared/utils/DataWrap';
 interface Props {
     onSubmit:() => void
 
