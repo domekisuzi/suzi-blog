@@ -3,7 +3,7 @@ package cn.domekisuzi.blog.repository;
  
 import cn.domekisuzi.blog.model.Module;
 import cn.domekisuzi.blog.repository.projection.ModuleDetailProjection;
-import cn.domekisuzi.blog.vo.ModuleDetailVo;
+ 
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

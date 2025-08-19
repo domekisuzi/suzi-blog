@@ -31,6 +31,7 @@ private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    
     // 捕获你自定义的异常（例如 EntityNotFoundException）
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {

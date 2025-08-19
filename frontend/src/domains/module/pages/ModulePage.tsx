@@ -14,14 +14,16 @@ const ModulePage = () => {
                 setModuleList(res);
                 console.log(res,'module details fetched successfully');
             }
-        )
+        ).catch(e=>{
+            console.error(e,'module details fetched failed');
+        })
     }, [])
 
     return (
-        
-        <Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2,maxWidth:'100%'}}>
             {moduleList.map(module => (
-                <ModuleDetailCard key={module.id} module={module} />
+                <ModuleDetailCard sx={{ flex: '0 0 30%', maxWidth: '30%' , gap: 2,flexWrap:'wrap'}} key={module.id} module={module} />
             ))}
         </Box>
     );

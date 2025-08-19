@@ -8,9 +8,9 @@ import { renderSvgNode } from '../../../shared/utils/renderSvg';
 
 interface ModuleDetailProps {
     module?:ModuleDetailVo 
-
+    sx?: React.CSSProperties
 }
-const ModuleDetailCard = ({ module = mockModuleDetailVo   }: ModuleDetailProps) => {
+const ModuleDetailCard = ({ module = mockModuleDetailVo, sx }: ModuleDetailProps) => {
 
     const nodeJson  = module.iconSVG ?    parseSvgToJson( module.iconSVG) : null
     if (nodeJson && nodeJson.attrs) {
@@ -20,7 +20,7 @@ const ModuleDetailCard = ({ module = mockModuleDetailVo   }: ModuleDetailProps) 
     }
 
     return (
-        <Card variant='outlined' sx ={{ width:"30%",margin:"1%",overflow:"visible"}}  >
+        <Card variant='outlined' sx ={{ overflow:"visible" ,...sx}}  >
           
             <CardHeader  sx={{  display:"flex", flexDirection:"column",alignItems:"center",justifyContent:"center"}}
                 avatar={
