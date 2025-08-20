@@ -36,7 +36,7 @@ const ModuleDetailCard = ({ module = mockModuleDetailVo, sx }: ModuleDetailProps
                 <Typography variant="h6">{module.name}</Typography>
                 <Typography variant="body2">Created At: {module.createdAt}</Typography>
                 <Typography variant="body2">Tasks: {module.taskNumber}</Typography>
-                <Typography variant="body2">Subtasks: {module.subTaskNumber}</Typography>
+                <Typography variant="body2">Subtasks: {module.subtaskNumber}</Typography>
                 <Typography variant="body2">Completed Tasks: {module.completedTaskNumber}</Typography>
                 <Typography variant="body2">Completed Subtasks: {module.completedSubtaskNumber}</Typography>
                 <Divider sx={{ my: 1 }} />

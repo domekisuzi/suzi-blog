@@ -111,17 +111,26 @@ public class ModuleServiceImpl implements ModuleService {
     public List<ModuleDetailVo> getAllModuleDetails() {
         List<ModuleDetailProjection> moduleDetailProjections =  moduleRepository.findMoudleDetailVo();
         return moduleDetailProjections.stream()
-                .map(projection -> new ModuleDetailVo(
-                        projection.getId(),
-                        projection.getName(),
-                        projection.getTaskNumber().intValue(),
-                        projection.getSubtaskNumber().intValue(),
-                        String.valueOf ((float) projection.getCompletedTaskNumber().intValue()* 100 / projection.getTaskNumber().intValue()  ),
-                        projection.getCompletedSubtaskNumber().intValue(),
-                        projection.getCompletedTaskNumber().intValue(),
-                        projection.getIconSVG(),
-                        null // dueDate 暂时设为 null
-                ))
+                .map(projection -> {
+                    int subtaskNumber = projection.getSubtaskNumber() != null ? projection.getSubtaskNumber().intValue() : 0;
+                    int completedSubtaskNumber = projection.getCompletedSubtaskNumber() != null ? projection.getCompletedSubtaskNumber().intValue() : 0;
+                    int taskNumber = projection.getTaskNumber() != null ? projection.getTaskNumber().intValue() : 0;
+                    int completedTaskNumber = projection.getCompletedTaskNumber() != null ? projection.getCompletedTaskNumber().intValue() : 0;
+                    int totalItems = taskNumber + subtaskNumber;
+                    float completedRate = totalItems == 0 ? 0 : (float) (100.0 * (completedSubtaskNumber + completedTaskNumber) / totalItems);
+                    System.out.println("ModuleDetailProjection: " + projection.getId() + ", completedRate: " + completedRate);
+                    return new ModuleDetailVo(
+                            projection.getId(),
+                            projection.getName(),
+                            taskNumber,
+                            subtaskNumber,
+                            String.valueOf(completedRate),
+                            completedSubtaskNumber,
+                            completedTaskNumber,
+                            projection.getIconSVG(),
+                            null // dueDate 暂时设为 null
+                    );
+                })
                 .collect(Collectors.toList());
     }
 

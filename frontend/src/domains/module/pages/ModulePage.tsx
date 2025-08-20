@@ -21,9 +21,9 @@ const ModulePage = () => {
 
     return (
 
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2,maxWidth:'100%'}}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 ,justifyContent:'space-between'  ,flexWrap:'wrap'}}>
             {moduleList.map(module => (
-                <ModuleDetailCard sx={{ flex: '0 0 30%', maxWidth: '30%' , gap: 2,flexWrap:'wrap'}} key={module.id} module={module} />
+                <ModuleDetailCard sx={{  flex: '0 0 30%', maxWidth: '30%'}} key={module.id} module={module} />
             ))}
         </Box>
     );
