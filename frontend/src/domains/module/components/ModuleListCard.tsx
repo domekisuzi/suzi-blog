@@ -12,7 +12,9 @@ import { renderSvgNode } from '../../../shared/utils/renderSvg';
 import { parseSvgToJson } from '../../../shared/utils/parseSvgToJson';
  
 
- 
+/**
+ * A List to show all module, it is designed to show its task when clicked , but now it may be deprecated 
+ *  */ 
 interface ModuleProps {
   modules: Module[] | null;
   onSelect?: (moduleId: string) => void;

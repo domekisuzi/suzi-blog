@@ -244,9 +244,9 @@ const TaskPage: React.FC=() => {
         </div>
 
         <div className={styles.taskSection}>
-            <div className={styles.module}>
+            {/* <div className={styles.module}>
                     <MouduleListCard  modules={moduleList}  onSelect={handleModuleSelect}  selectedModuleId={selectedModuleId}/>
-            </div>
+            </div> */}
             <div className={styles.tasks}>
                 <List className={styles.taskRoot}>
 
