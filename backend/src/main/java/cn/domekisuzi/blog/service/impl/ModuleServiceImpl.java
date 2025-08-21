@@ -73,10 +73,11 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Override
     public ModuleDetailVo getModuleDetail(String moduleId) {
-        Module module = moduleRepository.findById(moduleId)
+        // 使用优化后的查询方法，一次性加载Module、Tasks和Subtasks
+        Module module = moduleRepository.findByIdWithTasksAndSubtasks(moduleId)
             .orElseThrow(() -> new ResourceNotFoundException("Module not found"));
         
-        List<Task> tasks = module.getTasks(); // depend on  repository,now it can get every task list,but it is a little inefficent to get useless task 
+        List<Task> tasks = module.getTasks();
 
         int taskNumber = tasks.size();
         int completedTaskNumber = (int) tasks.stream().filter(Task::getCompleted).count();
@@ -85,14 +86,14 @@ public class ModuleServiceImpl implements ModuleService {
         int completedSubtaskNumber = 0;
 
         for (Task task : tasks) {
-            List<Subtask> subtasks = task.getSubtasks(); // 假设已关联子任务
+            List<Subtask> subtasks = task.getSubtasks(); // 现在不会触发额外查询
             subTaskNumber += subtasks.size();
-            completedSubtaskNumber += subtasks.stream().filter(Subtask::getCompleted).count();
+            completedSubtaskNumber += (int) subtasks.stream().filter(Subtask::getCompleted).count();
         }
 
         int totalItems = taskNumber + subTaskNumber;
         int completedItems = completedTaskNumber + completedSubtaskNumber;
-        float completedRate = totalItems == 0 ? 0 :(float) (completedItems * 100 / totalItems);
+        float completedRate = totalItems == 0 ? 0 : (float) (completedItems * 100.0 / totalItems);
 
         ModuleDetailVo vo = new ModuleDetailVo();
         vo.setId(module.getId());
@@ -101,9 +102,8 @@ public class ModuleServiceImpl implements ModuleService {
         vo.setSubtaskNumber(subTaskNumber);
         vo.setCompletedTaskNumber(completedTaskNumber);
         vo.setCompletedSubtaskNumber(completedSubtaskNumber);
-        vo.setCompletedRate(String.valueOf(completedRate)); // 转换为字符串格式
-        vo.setIconSVG(module.getIconSVG()); // 假设字段名为 iconSvg
-        // vo.setDueDate(module.getDueDate() != null ? module.getDueDate().toString() : null);
+        vo.setCompletedRate(String.valueOf(completedRate));
+        vo.setIconSVG(module.getIconSVG());
         return vo;
     }
 
@@ -118,7 +118,7 @@ public class ModuleServiceImpl implements ModuleService {
                     int completedTaskNumber = projection.getCompletedTaskNumber() != null ? projection.getCompletedTaskNumber().intValue() : 0;
                     int totalItems = taskNumber + subtaskNumber;
                     float completedRate = totalItems == 0 ? 0 : (float) (100.0 * (completedSubtaskNumber + completedTaskNumber) / totalItems);
-                    System.out.println("ModuleDetailProjection: " + projection.getId() + ", completedRate: " + completedRate);
+                    // System.out.println("ModuleDetailProjection: " + projection.getId() + ", completedRate: " + completedRate);
                     return new ModuleDetailVo(
                             projection.getId(),
                             projection.getName(),
