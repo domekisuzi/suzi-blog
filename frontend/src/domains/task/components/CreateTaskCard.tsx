@@ -8,10 +8,13 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
  
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
-import { Module, Task, TaskPriority, TaskPriorityValues } from '../model/taskTypes';
-import { createTask, fetchModules } from '../../../api/tasks';
+ 
+import { Task, TaskPriority, TaskPriorityValues ,Module} from '../model/taskTypes';
+ 
 import { dateUtils } from '../../../shared/utils/DateUtil';
 import { withUUID } from '../../../shared/utils/DataWrap';
+import { createTask } from '../api/taskApi';
+import { fetchModules } from '../../module/api/moduleApi';
 interface Props {
     onSubmit:() => void
 

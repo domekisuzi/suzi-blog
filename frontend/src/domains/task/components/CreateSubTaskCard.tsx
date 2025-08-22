@@ -6,9 +6,10 @@ import utc from 'dayjs/plugin/utc';
 import React from 'react';
 import { Subtask } from '../model/taskTypes';
 import { dateUtils } from '../../../shared/utils/DateUtil';
-import { createSubtask } from '../../../api/tasks';
+ 
 import Box from '@mui/material/Box';
 import { TextField } from '@mui/material';
+import { createSubtask } from '../api/taskApi';
  
 interface CreateSubTaskCardProps {
     taskId: string; // ID of the parent task

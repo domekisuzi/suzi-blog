@@ -13,7 +13,7 @@ import {
 import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "../model/taskTypes";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../../shared/utils/CrackData";
-import {createTask, deleteTask, fetchModules, fetchTasks, updateTask} from "../../../api/tasks";
+import {fetchTasks, deleteTask, updateTask} from '../api/taskApi';
 import {withUUID} from "../../../shared/utils/DataWrap";
 import TaskMain from "../components/TaskMain";
 import TaskDetailCard from '../components/TaskDetailCard';
@@ -22,6 +22,7 @@ import CreateSubTaskCard from '../components/CreateSubTaskCard';
 import CreateTaskCard from '../components/CreateTaskCard';
 import ModuleCard from  '../../module/components/ModuleCard';
 import MouduleListCard from '../../module/components/ModuleListCard';
+import { fetchModules } from '../../module/api/moduleApi';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
