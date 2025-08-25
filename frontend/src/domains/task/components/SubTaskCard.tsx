@@ -17,8 +17,10 @@ export default function SubtaskCard ({subtask}:subtaskProps ){
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',
                 }
             }}>
-                {subtask.completed ? <CheckCircleOutlineOutlinedIcon sx={{ fill: 'green','&:hover': { fill: 'gray' }}} /> : <CheckCircleOutlineOutlinedIcon sx={{'&:hover': { fill: 'red' }}}/>} 
-                <Typography sx={{fontSize:"1em"}} >{subtask.title}</Typography>
+                <Box  display="flex"   flexDirection="row" >
+                    {subtask.completed ? <CheckCircleOutlineOutlinedIcon sx={{ fill: 'green','&:hover': { fill: 'gray' }}} /> : <CheckCircleOutlineOutlinedIcon sx={{'&:hover': { fill: 'red' }}}/>} 
+                    <Typography sx={{fontSize:"1em",marginLeft:"8px"}} >{subtask.title}</Typography> 
+                </Box>
                 {subtask.dueDate ?   <Typography variant="body2">Due at : {new Date(subtask.dueDate).toLocaleDateString()}</Typography> : "null"}
             </CardContent>
 

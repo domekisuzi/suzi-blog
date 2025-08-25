@@ -10,4 +10,5 @@ public  interface SubtaskService {
     SubtaskDTO createSubtask(String taskId, SubtaskDTO dto);
     SubtaskDTO updateSubtask(String taskId, String subtaskId, SubtaskDTO dto);
     void deleteSubtask(String taskId, String subtaskId);
+    List<SubtaskDTO> parseSubtasksJson(String subtasks);
 } 

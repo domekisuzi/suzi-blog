@@ -1,4 +1,5 @@
-import {Module, Subtask, Task} from "../../domains/task/model/taskTypes";
+import { Module } from "../../domains/module/model/module";
+import {  Subtask, Task} from "../../domains/task/model/taskTypes";
 export const mockModules:Module[] = [
     {id:"md-1",name:"learn Japanese"},
     {id:"md-2",name:"Finance"},

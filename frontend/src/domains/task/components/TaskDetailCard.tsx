@@ -6,8 +6,7 @@ import {
     Box,
     Chip,
     Divider,
-    Select,
-    MenuItem,
+
     List,
     ListItem,
     ListItemIcon,
@@ -17,13 +16,13 @@ import {
  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import { Task } from '../model/taskTypes'
+import { Task, TaskDetailVo } from '../model/taskTypes'
 import { dateUtils } from '../../../shared/utils/DateUtil'
  
  
 
 interface Props {
-    task: Task
+    task: Task 
     isEditing?: boolean
     onChange?: (updated: Task) => void // this function is used for noticing the change to parent component, when the value is uneditable, we do not need to set the value
 }

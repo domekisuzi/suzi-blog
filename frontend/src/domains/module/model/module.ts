@@ -29,3 +29,9 @@ export const mockModuleDetailVo: ModuleDetailVo = {
     completedSubtaskNumber: 5,
     completedTaskNumber: 3  
 }
+export interface Module {
+    id: string
+    name: string
+    iconSVG?: string
+}
+// 分类（可选）

@@ -73,6 +73,11 @@ public class SubtaskServiceImpl implements SubtaskService {
         subtaskRepo.delete(subtask);
     }
 
+    @Override
+    public List<SubtaskDTO> parseSubtasksJson(String subtasks) {
+        return SubtaskMapper.parseSubtasksJson(subtasks);
+    }
+
     // ---------- DTO ↔ Entity 映射 ----------   ??
     // private SubtaskDTO toDTO(Subtask subtask) {
     //     SubtaskDTO dto = new SubtaskDTO();

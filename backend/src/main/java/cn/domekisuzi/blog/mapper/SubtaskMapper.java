@@ -3,7 +3,16 @@ import cn.domekisuzi.blog.dto.SubtaskDTO;
 import cn.domekisuzi.blog.model.Subtask;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+ 
 public class SubtaskMapper {
+
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     public static Subtask toEntity(SubtaskDTO dto) {
         Subtask sub = new Subtask();
         if(dto.getId() != null && dto.getId() != ""){
@@ -34,4 +43,20 @@ public class SubtaskMapper {
 
         return dto;
     }
+
+    public static List<SubtaskDTO> parseSubtasksJson(String subtasks) {
+        // Assuming subtasks is a JSON array string
+        if (subtasks == null || subtasks.isBlank()) {
+                return Collections.emptyList();
+            }
+
+            try {
+                return objectMapper.readValue(subtasks, new TypeReference<List<SubtaskDTO>>() {});
+            } catch (Exception e) {
+                // 可根据需要记录日志或抛出自定义异常
+                System.err.println("Failed to parse subtasks JSON: " + e.getMessage());
+                return Collections.emptyList();
+            }
+        }
+    
 }

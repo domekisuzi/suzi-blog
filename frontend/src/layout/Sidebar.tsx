@@ -66,7 +66,7 @@ const Sidebar : React.FC=() => {
                 <List component="div" disablePadding>
                 <ListItemButton sx={{ pl: 4 }} onClick={() => navigate('/modules')}>
                     <ListItemIcon>
-                    <SvgIcon component={ModuleIcon}  inheritViewBox/>
+                    <SvgIcon component={ModuleIcon}  sx={{'&:hover': {fill: "#FFD700", },}}  inheritViewBox/>
                     </ListItemIcon>
                     <ListItemText primary="Module" />
                 </ListItemButton>

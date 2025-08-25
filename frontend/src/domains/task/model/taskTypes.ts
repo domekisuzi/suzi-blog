@@ -28,21 +28,21 @@ export interface Task {
     subtasks?: Subtask[]
     moduleName?: string
 }
-
-
-export interface TaskShowCompletedModule{
-
-    completeRate: string
+export interface TaskDetailVo{ 
+    id: string
+    title: string
+    description?: string
+    completed: boolean
+    priority?: TaskPriority
+    dueDate?: string
+    createdAt: string
+    subtasks?: Subtask[]
+    moduleName?: string
+    completedRate: string
 }
-
 
 //这个 Module 用于给每个任务指定一个
-export interface Module {
-    id: string
-    name: string
-    iconSVG?: string
-}
-// 分类（可选）
+
 export interface TaskCategory {
     id: string
     name: string

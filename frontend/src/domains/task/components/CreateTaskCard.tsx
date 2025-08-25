@@ -9,14 +9,15 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
  
-import { Task, TaskPriority, TaskPriorityValues ,Module} from '../model/taskTypes';
+import { Task, TaskPriority, TaskPriorityValues } from '../model/taskTypes';
  
 import { dateUtils } from '../../../shared/utils/DateUtil';
 import { withUUID } from '../../../shared/utils/DataWrap';
 import { createTask } from '../api/taskApi';
 import { fetchModules } from '../../module/api/moduleApi';
+import { Module } from '../../module/model/module';
 interface Props {
-    onSubmit:() => void
+    onSubmit:(task:Task) => void
 
 }
 
@@ -30,13 +31,21 @@ export default function CreateTaskCard({onSubmit}:Props ) {
             fetchModules().then(res=>setModuleList(res)).catch(error=>console.log(error))
     },[])
 
-    const handleCreateTaskSubmit = (e:React.FormEvent<HTMLFormElement>) =>{ // I am not sure if it's right to  contennt 
-            e.preventDefault()
+ 
+
+    return (
+       <Card> 
+        <CardContent>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+                               <Box
+                                   id="createTaskForm"
+                                   component="form"
+                                   onSubmit={(e)=> {
+                                    e.preventDefault()
             const formData =  new FormData(e.currentTarget)
-            // const module:Module | undefined  =  moduleList?.filter( data=>data.name == formData.get('moduleId') as string )[0]
-            // console.log(module)
+            
             const moduleName  =   formData.get('moduleId') as string 
-            const taskData = {
+            const taskData :Task = {
                 title: formData.get('title') as string,
                 description: formData.get('description') as string,
                 moduleName: (moduleName === '') ? undefined : moduleName ,
@@ -49,27 +58,16 @@ export default function CreateTaskCard({onSubmit}:Props ) {
             createTask(withUUID<Task>(taskData) ).then((res)=>{
                 if(res){
                     //TODO('create the update success animation to alert user')
+                    onSubmit(taskData)
                 }
-                // console.log(taskData.dueDate)
+                
                 console.log("创建任务成功",res)
-            }).catch(
-                (error)=>{
-                    console.log("创建任务失败")
-                    console.log(error)
-                }
-            )
-        }
-
-    return (
-       <Card> 
-        <CardContent>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-                               <Box
-                                   id="createTaskForm"
-                                   component="form"
-                                   onSubmit={(e)=> {
-                                       onSubmit()
-                                       handleCreateTaskSubmit(e)
+                    }).catch(
+                        (error)=>{
+                            console.log("创建任务失败")
+                            console.log(error)
+                        }
+                    )
                                    }
                                 }
 
@@ -85,13 +83,14 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                        📌 基本信息
                                    </Typography>
        
-                                   <TextField name="title" variant="standard" label="任务标题" required />
+                                   <TextField name="title" variant="standard" label="任务标题" required defaultValue={''} />
                                    <TextField
                                        name="description"
                                        variant="standard"
                                        label="任务描述"
                                        multiline
                                        minRows={2}
+                                       defaultValue={''}
                                    />
        
                                    <Divider sx={{ my: 1 }} />
@@ -101,9 +100,10 @@ export default function CreateTaskCard({onSubmit}:Props ) {
        
                                    <TextField
                                        name="moduleId"
-                                       select
+                                    
                                        variant="standard"
                                        label="模块（可选）"
+                                       defaultValue={''}
                                    >
                                        {moduleList && moduleList.map((data) => (
                                            <MenuItem key={data.id} value={data.name}>
@@ -114,10 +114,11 @@ export default function CreateTaskCard({onSubmit}:Props ) {
        
                                    <TextField
                                        name="taskPriority"
-                                       select
+                                     
                                        variant="standard"
                                        label="优先级"
                                        required
+                                       defaultValue={''}
                                    >
                                        {TaskPriorityValues.map((data) => (
                                            <MenuItem key={data} value={data}>

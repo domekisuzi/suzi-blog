@@ -10,10 +10,10 @@ import {
     TextField,
     Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton
 } from "@mui/material";
-import {Module, Task, TaskPriority, TaskPriorityValues,Subtask} from "../model/taskTypes";
+import {  Task, TaskPriority, TaskPriorityValues,Subtask, TaskDetailVo} from "../model/taskTypes";
 import styles from  "./TaskPage.module.css"
 import {mockModules, mockTasks} from "../../../shared/utils/CrackData";
-import {fetchTasks, deleteTask, updateTask} from '../api/taskApi';
+import {fetchTasks, deleteTask, updateTask, getAllTaskVos} from '../api/taskApi';
 import {withUUID} from "../../../shared/utils/DataWrap";
 import TaskMain from "../components/TaskMain";
 import TaskDetailCard from '../components/TaskDetailCard';
@@ -23,6 +23,8 @@ import CreateTaskCard from '../components/CreateTaskCard';
 import ModuleCard from  '../../module/components/ModuleCard';
 import MouduleListCard from '../../module/components/ModuleListCard';
 import { fetchModules } from '../../module/api/moduleApi';
+import { set } from 'date-fns';
+import { Module } from '../../module/model/module';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
@@ -41,7 +43,9 @@ const TaskPage: React.FC=() => {
 
     // used  for detail task
     const [nowDetailTask,setNowDetailTask] = React.useState< Task| null>(null)
+    const [nowDetailTaskVo,setNowDetailTaskVo] = React.useState<TaskDetailVo | null>(null)
     const [taskList,setTaskList] = React.useState <Task[]|null>(null)
+    const [detailTaskVoList,setDetailTaskVoList] = React.useState<TaskDetailVo[] | null>(null)
     const [moduleList,setModuleList] = React.useState <Module[]|null>(null)
     
     const [editTaskOpen,setEditTaskOpen] = React.useState(false)
@@ -59,6 +63,7 @@ const TaskPage: React.FC=() => {
     }
     const handleCreateSubTaskOpen = (task:Task) => {
         setNowDetailTask(task)
+         
         setCreateSubTaskOpen(true);
     }
     const handleCreateSubTaskClose = () => {
@@ -99,27 +104,29 @@ const TaskPage: React.FC=() => {
         setEditTaskOpen(true)
     }
 
-   
     const handleDeleteTask = (task:Task) =>{
-
-        deleteTask(task.id).then(
-            ()=>{
-                setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
-            }
-        )
+        if (window.confirm("Are you sure you want to delete this task?")) {
+            deleteTask(task.id).then(
+                ()=>{
+                    setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
+                }
+            )
+        }
+        setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
     }
+
     const handleModuleSelect = (id: string) => {
         setSelectedModuleId(id);
         // 触发任务筛选逻辑
     };
-     const handleCreateModuleSubmit = () =>{
+    const handleCreateModuleSubmit = (module: Module ) => {
         handleCreateModuleClose()
-        freshModuleList()
+        setModuleList(pre => pre ? [...pre, module] : [module])
      }
-    const handleCreateTaskSubmit = ( ) =>{
+    const handleCreateTaskSubmit = (task:Task ) =>{
         
         handleCreateTaskClose()
-        freshTasksList()  
+        setTaskList(pre => pre ? [...pre, task] : [task])
     }
 
     const handleEditTaskSubmit = ()=>{
@@ -164,13 +171,25 @@ const TaskPage: React.FC=() => {
             }
         )
     }
+    const freshTaskVoList = () => {
+        getAllTaskVos().then(
+            (res) => {
+                console.log("测试下taskVo",res)
+                setDetailTaskVoList(res)
+            }
+        ).catch(
+            (error) => {
+                console.error("获取任务视图失败", error)
+            }
+        )
+    }
 
     useEffect(()=>{
         freshTasksList()
         freshModuleList()
+        freshTaskVoList()
         console.log("effect works")
     },[])
-
 
     //also need a var to show completedTask,then use a button to change the task state
     const uncompletedTasks:Task[] =   useMemo (() =>{ // maybe sometimes we need to show  the work both completed and uncompleted
@@ -208,7 +227,6 @@ const TaskPage: React.FC=() => {
                     </DialogTitle>
                     <DialogContent>
                         <ModuleCard onEditing={false} onSubmit={handleCreateModuleSubmit}/>
-                
                     </DialogContent>
 
                     <DialogActions>
@@ -252,7 +270,7 @@ const TaskPage: React.FC=() => {
                 <List className={styles.taskRoot}>
 
                     {
-                        uncompletedTasks?.map((task)=> ( 
+                        detailTaskVoList?.map((task)=> ( 
                             <ListItem key={task.id}  sx={
                                  { padding:0,alienItems:'stretch'}
                             } >
@@ -278,7 +296,7 @@ const TaskPage: React.FC=() => {
                 </DialogTitle>
                 <DialogContent dividers>{
                     nowDetailTask && (
-                            <TaskDetailCard task={nowDetailTask} isEditing={false}   />
+                            <TaskDetailCard task={ nowDetailTask} isEditing={false}   />
                     )
                 }
                 </DialogContent>

@@ -4,6 +4,7 @@ package cn.domekisuzi.blog.service;
 import java.util.List;
  
 import cn.domekisuzi.blog.dto.TaskDTO;
+import cn.domekisuzi.blog.vo.TaskDetailVo;
  
 
 public interface TaskService {
@@ -20,4 +21,5 @@ public interface TaskService {
    
     // 删除任务
     public void deleteTask(String id) ;
+    List<TaskDetailVo> getAllTaskDetailVos();
 }  

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task } from '../model/taskTypes';
+import { Task, TaskDetailVo } from '../model/taskTypes';
 import { Card,CardContent,Button} from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { Box } from '@mui/system';
@@ -21,7 +21,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 
 interface Props {
      
-    task: Task
+    task: TaskDetailVo
     onDelete:(nowTask: Task) => void  
     onEdit: (nowTask: Task) => void  
     onClick: () => void // this function is used for clicking the task, it is optional, if not set, the task will not be clickable
@@ -37,7 +37,7 @@ interface Props {
 export default function TaskMain({ task,onClick,onDelete,onEdit,sx,addSubTaskClick}:Readonly<Props>){
 
     return (    
-           <Card  sx={sx} >
+           <Card sx={sx} >
             <CardActionArea  component="div" onClick={onClick} >
                     <CardContent>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
@@ -52,7 +52,6 @@ export default function TaskMain({ task,onClick,onDelete,onEdit,sx,addSubTaskCli
                         size="small"
                     />
                     </Box>
-                    
                     <Box alignItems="center" display="flex" justifyContent="space-between"  mb={1}>
                         <Typography  variant="h6" gutterBottom>
                             {task.title}
@@ -115,7 +114,7 @@ export default function TaskMain({ task,onClick,onDelete,onEdit,sx,addSubTaskCli
                         <LinearProgress sx={{borderRadius:5, height:10, 
                         backgroundColor: '#e0e0e0'}} 
                         variant="determinate"
-                        value={task.completed ? 100 : 40} />
+                        value={parseFloat(task.completedRate)} />
                     </Box>
                   
                 </CardContent>

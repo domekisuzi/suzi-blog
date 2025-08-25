@@ -1,6 +1,6 @@
  import { api } from "../../../shared/utils/APIUtils"
-import { Module } from "../../task/model/taskTypes"
-import { ModuleDetailVo } from "../model/module"
+ 
+import { Module, ModuleDetailVo } from "../model/module"
 const BASE = '/modules'
 export async function fetchModuleDetails(): Promise<ModuleDetailVo[]> {
     const res = await api.get(`${BASE}/vo`)

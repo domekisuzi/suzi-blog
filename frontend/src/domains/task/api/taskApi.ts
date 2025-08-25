@@ -1,5 +1,5 @@
 import { api } from "../../../shared/utils/APIUtils"
-import { Subtask, Task } from "../model/taskTypes"
+import { Subtask, Task, TaskDetailVo } from "../model/taskTypes"
 
 
 const BASE = '/tasks'
@@ -62,3 +62,8 @@ export async function getAllSubtasks (): Promise<Subtask[]>  {
    const res = await api.get(`/tasks/subtasks`);
    return res.data;
 };
+
+export async function getAllTaskVos(): Promise<TaskDetailVo[]> {
+   const res = await api.get(`/tasks/vo`);
+   return res.data; 
+}

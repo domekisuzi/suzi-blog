@@ -8,6 +8,7 @@ import cn.domekisuzi.blog.dto.TaskDTO;
  
 import cn.domekisuzi.blog.repository.TaskRepository;
 import cn.domekisuzi.blog.service.TaskService;
+import cn.domekisuzi.blog.vo.TaskDetailVo;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -27,6 +28,12 @@ public class TaskController {
     public   ResponseEntity<List<TaskDTO>> getAll() {
         List<TaskDTO> allTasks = taskService.getAllTasks();
         return ResponseEntity.ok(allTasks);
+    }
+
+    @GetMapping("vo")
+    public ResponseEntity<List<TaskDetailVo>> getAllTaskDetails() {
+        List<TaskDetailVo> allTaskDetails = taskService.getAllTaskDetailVos();
+        return ResponseEntity.ok(allTaskDetails);
     }
 
     @PostMapping
