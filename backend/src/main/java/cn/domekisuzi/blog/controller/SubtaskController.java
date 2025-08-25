@@ -1,38 +1,43 @@
 package cn.domekisuzi.blog.controller;
 
 import cn.domekisuzi.blog.dto.SubtaskDTO;
+import cn.domekisuzi.blog.mapper.SubtaskMapper;
+import cn.domekisuzi.blog.repository.SubtaskRepository;
 import cn.domekisuzi.blog.service.SubtaskService;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
  
 
 @RestController
-@RequestMapping("/api/tasks/{taskId}/subtasks")
+@RequestMapping("/api/tasks")
+@RequiredArgsConstructor
 public class SubtaskController {
-
+    //TOOD("好像有点冗余，为什么一定要taskID")
     private final SubtaskService subtaskService;
 
-    public SubtaskController(SubtaskService subtaskService) {
-        
-        this.subtaskService = subtaskService;
-    }
+
+    private final SubtaskRepository subtaskRepository;
+    
 
     /**
      * 获取某个任务下的所有子任务
      */
-    @GetMapping
+    @GetMapping("/{taskId}/subtasks")
     public ResponseEntity<List<SubtaskDTO>> getSubtasks(@PathVariable String taskId) {
         List<SubtaskDTO> subtasks = subtaskService.getSubtasksByTaskId(taskId);
         return ResponseEntity.ok(subtasks);
     }
 
+    
     /**
      * 创建子任务（绑定任务 ID）
      */
-    @PostMapping
+    @PostMapping("/{taskId}/subtasks")
     public ResponseEntity<SubtaskDTO> createSubtask(@PathVariable String taskId, @RequestBody SubtaskDTO dto) {
         SubtaskDTO created = subtaskService.createSubtask(taskId, dto);
         
@@ -43,7 +48,7 @@ public class SubtaskController {
     /**
      * 更新子任务内容（如标题、完成状态）
      */
-    @PutMapping("/{subtaskId}")
+    @PutMapping("/{taskId}/subtasks/{subtaskId}")
     public ResponseEntity<SubtaskDTO> updateSubtask(@PathVariable String taskId, @PathVariable String subtaskId, @RequestBody SubtaskDTO dto) {
         SubtaskDTO updated = subtaskService.updateSubtask(taskId, subtaskId, dto);
         return ResponseEntity.ok(updated);
@@ -52,9 +57,18 @@ public class SubtaskController {
     /**
      * 删除子任务
      */
-    @DeleteMapping("/{subtaskId}")
+    @DeleteMapping("/{taskId}/subtasks/{subtaskId}")
     public ResponseEntity<Void> deleteSubtask(@PathVariable String taskId, @PathVariable String subtaskId) {
         subtaskService.deleteSubtask(taskId, subtaskId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/subtasks")
+    public ResponseEntity<List<SubtaskDTO>> getAllSubtasks() {
+        List<SubtaskDTO> subtasks = subtaskRepository.findAll().stream()
+                .map(SubtaskMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(subtasks);
+    }
+
 }

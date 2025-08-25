@@ -57,4 +57,8 @@ export async function deleteSubtask  (
 ): Promise<void>  {
   await api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`);
 }; 
- 
+
+export async function getAllSubtasks (): Promise<Subtask[]>  {
+   const res = await api.get(`/tasks/subtasks`);
+   return res.data;
+};

@@ -40,7 +40,8 @@ const ModuleDetailCard = ({ module = mockModuleDetailVo, sx }: ModuleDetailProps
                 <Typography variant="body2">Completed Tasks: {module.completedTaskNumber}</Typography>
                 <Typography variant="body2">Completed Subtasks: {module.completedSubtaskNumber}</Typography>
                 <Divider sx={{ my: 1 }} />
-                <LinearProgress variant="determinate" value={parseFloat(module.completedRate)} />
+                <LinearProgress  sx={{borderRadius:5, height:10, 
+                        backgroundColor: '#e0e0e0'}}  variant="determinate" value={parseFloat(module.completedRate)} />
             </CardContent>
         </Card>
     )

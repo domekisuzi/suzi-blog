@@ -11,11 +11,17 @@ interface subtaskProps {
 export default function SubtaskCard ({subtask}:subtaskProps ){
     
     return (
-        <Card  >
-            <CardContent  sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="h6" >{subtask.title}</Typography>
-                <Typography variant="body2">{subtask.completed ? <CheckCircleOutlineOutlinedIcon sx={{ fill: 'green' }} /> : <CheckCircleOutlineOutlinedIcon sx={{'&:hover': { fill: 'red' }}}/>}</Typography>
+        <Card sx={{width:"85%",borderRadius:"12px"}}>
+            <CardContent  sx={{   display: 'flex', flexDirection: 'row',margin:0,alignItems: 'center',justifyContent: 'space-between',
+                '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                }
+            }}>
+                {subtask.completed ? <CheckCircleOutlineOutlinedIcon sx={{ fill: 'green','&:hover': { fill: 'gray' }}} /> : <CheckCircleOutlineOutlinedIcon sx={{'&:hover': { fill: 'red' }}}/>} 
+                <Typography sx={{fontSize:"1em"}} >{subtask.title}</Typography>
+                {subtask.dueDate ?   <Typography variant="body2">Due at : {new Date(subtask.dueDate).toLocaleDateString()}</Typography> : "null"}
             </CardContent>
+
         </Card>
     )
 }
