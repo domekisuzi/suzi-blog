@@ -52,7 +52,7 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
         onChange?.({ ...task, subtasks: updatedSubtasks })
     }
     return (
-        <Box sx={{ p: 2 }}>
+        <>
             {/* 标题 */}
             {isEditing ? (
                 <TextField
@@ -105,7 +105,7 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                 </Typography>
             )}
 
-            { Array.isArray(task.subtasks)&& task.subtasks?.some  ( sub =>
+            { Array.isArray(task.subtasks) && task.subtasks?.some  ( sub => sub.title !== undefined && sub.title !== null && sub.title !== '') &&(
                 <>
                     <Divider sx={{my: 2}}/>
                     <Typography variant="subtitle1" gutterBottom>子任务</Typography>
@@ -139,6 +139,6 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                     </List>
                 </>
             )}
-        </Box>
+        </>
     )
 }

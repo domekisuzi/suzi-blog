@@ -28,6 +28,7 @@ export interface Task {
     subtasks?: Subtask[]
     moduleName?: string
 }
+//TODO("这个代码目前完全就是shi，目前TaskDetailVo没报错的原因是它包含了一堆不需要的数据结构，导致它算是task的子类了，如果去掉不需要的结构前端就会有大量 task和vo混淆的地方需要去解决")
 export interface TaskDetailVo{ 
     id: string
     title: string

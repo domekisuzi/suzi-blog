@@ -5,6 +5,8 @@ import cn.domekisuzi.blog.model.Subtask;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
  
@@ -51,7 +53,8 @@ public class SubtaskMapper {
             }
 
             try {
-                return objectMapper.readValue(subtasks, new TypeReference<List<SubtaskDTO>>() {});
+                List<SubtaskDTO>  res =  objectMapper.readValue(subtasks, new TypeReference<List<SubtaskDTO>>() {});
+                return res.stream().filter( sub -> sub != null && sub.getTitle() != null && !sub.getTitle().isBlank()).collect(Collectors.toList()); // filter the empty object 
             } catch (Exception e) {
                 // 可根据需要记录日志或抛出自定义异常
                 System.err.println("Failed to parse subtasks JSON: " + e.getMessage());
