@@ -10,4 +10,5 @@ public interface TaskDetailProjection {
     String getCreatedAt();
     String getCompletedRate();
     String getSubtasks(); // JSON array of subtasks
+    Integer getCompletedInteger();
 }

@@ -19,7 +19,9 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { Task, TaskDetailVo } from '../model/taskTypes'
 import { dateUtils } from '../../../shared/utils/DateUtil'
  
- 
+ /**
+  * this component is used to display the task details and its subtask 
+  */
 
 interface Props {
     task: Task 
@@ -103,12 +105,12 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                 </Typography>
             )}
 
-            {((task.subtasks?.length ?? 0) > 0) && (
+            { Array.isArray(task.subtasks)&& task.subtasks?.some  ( sub =>
                 <>
                     <Divider sx={{my: 2}}/>
                     <Typography variant="subtitle1" gutterBottom>子任务</Typography>
                     <List dense>
-                        {task.subtasks?.map(sub => (
+                        {task.subtasks?.map(sub =>   (
                             <ListItem key={sub.id}>
 
                                 <ListItemIcon>

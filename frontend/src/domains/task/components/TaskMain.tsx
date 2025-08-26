@@ -30,7 +30,7 @@ interface Props {
 }
 /**
  * component for displaying the main task information,and is used in the task list
- * @param task   give a task object, which is used to display the task information
+ * @param task   give a task object, which is used to display the task information,but is not used to show subtask 
 *  @returns 
  */
 

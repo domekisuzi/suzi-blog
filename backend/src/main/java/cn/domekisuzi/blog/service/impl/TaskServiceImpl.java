@@ -100,20 +100,21 @@ public class TaskServiceImpl  implements TaskService {
     @Override
     public  List<TaskDetailVo> getAllTaskDetailVos(){
         List<TaskDetailProjection> projections = taskRepository.findTaskDetailVo();
-        return projections.stream()
+        List<TaskDetailVo> taskDetailVos = projections.stream()
                 .map(proj -> new TaskDetailVo(
                         proj.getId(),
                         proj.getTitle(),
                         proj.getDescription(),
                         proj.getModuleName(),
- 
-                        proj.getCompleted(),
+                        proj.getCompletedInteger() == 1  ? true : false,
                         proj.getDueDate(),
                         proj.getCreatedAt(),
                         proj.getCompletedRate(),
-                        proj.getSubtasks() != null ? subtaskService.parseSubtasksJson(proj.getSubtasks()) : List.of()   
+                        proj.getSubtasks() != null ? subtaskService.parseSubtasksJson(proj.getSubtasks()) : List.of()   // if set it to null,it will create a new subtask object with null value 
                 ))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) ;
+        
+        return taskDetailVos; 
     }
     
 }

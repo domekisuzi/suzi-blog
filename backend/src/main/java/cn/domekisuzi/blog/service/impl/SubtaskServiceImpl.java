@@ -78,28 +78,4 @@ public class SubtaskServiceImpl implements SubtaskService {
         return SubtaskMapper.parseSubtasksJson(subtasks);
     }
 
-    // ---------- DTO ↔ Entity 映射 ----------   ??
-    // private SubtaskDTO toDTO(Subtask subtask) {
-    //     SubtaskDTO dto = new SubtaskDTO();
-    
-    //     dto.setId(subtask.getId());
-    //     if(subtask.getDueDate() != null){
-    //         dto.setDueDate(subtask.getDueDate().toString());
-    //     }
-    //     dto.setTitle(subtask.getTitle());
-    //     dto.setCompleted(subtask.getCompleted());
-    //     dto.setTaskId(subtask.getTask().getId());
-    //     return dto;
-    // }
-
-    // private Subtask toEntity(SubtaskDTO dto) {
-    //     Subtask entity = new Subtask();
-    //     entity.setTitle(dto.getTitle());
-    //     entity.setCompleted(dto.isCompleted());
-    //     // entity.setId(dto.getId()); this will let Hibernate  regard it as a new object
-    //     if(dto.getDueDate() != null && dto.getDueDate() != "") {
-    //         entity.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-    //     }
-    //     return entity;
-    // }
 }
