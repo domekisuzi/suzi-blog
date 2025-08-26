@@ -148,16 +148,22 @@ const TaskPage: React.FC=() => {
     const handleCreateSubTaskSubmit = (subtask:  Partial<Subtask> )=>{
         handleCreateSubTaskClose()
         //TODO add fresh logic 
+        subtask.id = subtask.id ? subtask.id : 'd3b6eb33-f38a-4f83-b618-f17483b1e152' // if the id is not exist, set it to empty string 
         setNowDetailTask(pre => {
             if(pre) {
-                return {
+                 const res =  {
                     ...pre,
                     subtasks: [...(pre.subtasks || []), subtask as Subtask] // can resistant this because the card do not to show something
                 }
+                console.log("测试下创建",res)
+                setTaskList(pre => pre ? pre.map(task => task.id === nowDetailTask?.id ? res : task) : [])
+                freshTaskVoList()//it works ! 
+                return res
             }
             return pre
-        })
-
+        }) 
+       
+       
     }
 
     const freshModuleList = () =>{
@@ -198,7 +204,7 @@ const TaskPage: React.FC=() => {
         freshTasksList()
         freshModuleList()
         freshTaskVoList()
-        console.log("effect works")
+        console.log("init task page success!")
     },[])
 
     //also need a var to show completedTask,then use a button to change the task state
@@ -325,9 +331,7 @@ const TaskPage: React.FC=() => {
                 <DialogContent dividers>
                     {  
                     nowDetailTask && 
-                  
                         <TaskDetailCard task={nowDetailTask } isEditing={true} onChange={setNowDetailTask }/>
-
                     }
 
                 </DialogContent>
