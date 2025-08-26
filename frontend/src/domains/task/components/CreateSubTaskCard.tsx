@@ -13,43 +13,44 @@ import { createSubtask } from '../api/taskApi';
  
 interface CreateSubTaskCardProps {
     taskId: string; // ID of the parent task
-    onSubmit:() => void; 
+    onSubmit:(subtask: Partial<Subtask>) => void; 
 }
 
 export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTaskCardProps  ) {
 
-     const [dueDateNow, setDueDate] = React.useState<string | null>(null);
+    const [dueDateNow, setDueDate] = React.useState<string | null>(null);
     const [subTaskTitle, setSubTaskTitle] = React.useState('');
     dayjs.extend(utc)
-        const handleCreateSubTask = (e:React.FormEvent<HTMLFormElement>) =>{ // I am not sure if it's right to  contennt 
-            e.preventDefault()
-            const formData =  new FormData(e.currentTarget)
-            const taskData: Partial<Subtask> = {
-                title: formData.get('title') as string,
-                taskId:  taskId, // 关联的任务ID
-                completed: false,
-                id: "",
-                dueDate :   dueDateNow? dateUtils.toBackendFormat(dueDateNow) : undefined
-            } 
-            createSubtask(taskId, taskData).then((res)=>{
-                if(res){
-                    //TODO('create the update success animation to alert user')
-                }
-                console.log("创建子任务成功",res)
-            }).catch(
-                (error)=>{
-                    console.log("创建子任务失败",taskData)
-                    console.log(error)  
-                                }
-            )
-        }
+         
     return (
          <Box
                                    id="createSubTaskForm"
                                    component="form"
                                    onSubmit={(e)=> {
-                                       onSubmit()
-                                       handleCreateSubTask(e)
+                                       e.preventDefault()
+                                        const formData =  new FormData(e.currentTarget)
+                                        const taskData: Partial<Subtask> = {
+                                            title: formData.get('title') as string,
+                                            taskId:  taskId, // 关联的任务ID
+                                            completed: false,
+                                            id: "",
+                                            dueDate :   dueDateNow? dateUtils.toBackendFormat(dueDateNow) : undefined
+                                        } 
+                                        createSubtask(taskId, taskData).then((res)=>{
+                                            if(res){
+                                                //TODO('create the update success animation to alert user')
+                                                onSubmit(res)
+                                            }
+                                            console.log("创建子任务成功",res)
+                                        }).catch(
+                                            (error)=>{
+                                                console.log("创建子任务失败",taskData)
+                                                console.log(error)  
+                                                }
+                                        )
+
+                                       onSubmit(taskData )
+                                       
                                    }
                                 }
                                    sx={{

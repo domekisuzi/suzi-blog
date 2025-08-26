@@ -1,6 +1,6 @@
  
 import React, { useEffect } from 'react';
-import { Card, CardContent,Divider} from '@mui/material';
+import { Backdrop, Card, CardContent,CircularProgress,Divider} from '@mui/material';
 import { Box, TextField, Typography, MenuItem } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
  
@@ -16,6 +16,7 @@ import { withUUID } from '../../../shared/utils/DataWrap';
 import { createTask } from '../api/taskApi';
 import { fetchModules } from '../../module/api/moduleApi';
 import { Module } from '../../module/model/module';
+import { set } from 'date-fns';
 interface Props {
     onSubmit:(task:Task) => void
 
@@ -26,14 +27,23 @@ interface Props {
 export default function CreateTaskCard({onSubmit}:Props ) {
     const [dueDate, setDueDate] = React.useState<string | null>(null);
     const [moduleList, setModuleList] = React.useState<Module[] | null>(null);
+    const [loading,setLoading] = React.useState(true)
     dayjs.extend(utc)
      useEffect(() =>{
-            fetchModules().then(res=>setModuleList(res)).catch(error=>console.log(error))
+            fetchModules().then(res=>{
+                setModuleList(res)
+                setLoading(false)
+            }
+        ).catch(error=>console.log(error))
     },[])
 
- 
+    if(loading){
+        return (<Backdrop open={loading} sx={{ zIndex: 999 }}>
+                    <CircularProgress color="inherit" />
+                </Backdrop>)
+    }
 
-    return (
+    return moduleList &&  (
        <Card> 
         <CardContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -98,27 +108,30 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                        ⚙️ 任务设置
                                    </Typography>
        
-                                   <TextField
+                                      <TextField
                                        name="moduleId"
-                                    
+                                       select
                                        variant="standard"
                                        label="模块（可选）"
-                                       defaultValue={''}
+                                       defaultValue={moduleList ? moduleList[0].name : ''}
                                    >
-                                       {moduleList && moduleList.map((data) => (
-                                           <MenuItem key={data.id} value={data.name}>
-                                               {data.name}
-                                           </MenuItem>
-                                       ))}
+                                        {  (
+                                            moduleList.map(({ id, name }) => (
+                                            <MenuItem key={id} value={name}>
+                                                {name}
+                                            </MenuItem>
+                                            ))
+                                        ) }
                                    </TextField>
+                                    
        
                                    <TextField
                                        name="taskPriority"
-                                     
+                                       select
                                        variant="standard"
                                        label="优先级"
                                        required
-                                       defaultValue={''}
+                                       defaultValue={TaskPriorityValues[0]}
                                    >
                                        {TaskPriorityValues.map((data) => (
                                            <MenuItem key={data} value={data}>

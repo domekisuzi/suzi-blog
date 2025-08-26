@@ -145,9 +145,19 @@ const TaskPage: React.FC=() => {
         }
     }
 
-    const handleCreateSubTaskSubmit = ()=>{
+    const handleCreateSubTaskSubmit = (subtask:  Partial<Subtask> )=>{
         handleCreateSubTaskClose()
-        freshTasksList()  //TODO('can not fresh task list by fetch again') 
+        //TODO add fresh logic 
+        setNowDetailTask(pre => {
+            if(pre) {
+                return {
+                    ...pre,
+                    subtasks: [...(pre.subtasks || []), subtask as Subtask] // can resistant this because the card do not to show something
+                }
+            }
+            return pre
+        })
+
     }
 
     const freshModuleList = () =>{

@@ -12,9 +12,6 @@ public interface SubtaskRepository extends JpaRepository<Subtask, String> {
     List<Subtask> findByTaskId(String taskId);
     List<Subtask> findByCompleted(Boolean completed);
     List<SubtaskDTO> getSubtasksByTaskId(String taskId);
-    // SubtaskDTO createSubtask(String taskId, SubtaskDTO dto);
-    // SubtaskDTO updateSubtask(String taskId, String subtaskId, SubtaskDTO dto);
-    // void deleteSubtask(String taskId, String subtaskId);
     Optional<Subtask> findByIdAndTaskId(String subtaskId, String taskId);
 
 }
