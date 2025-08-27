@@ -2,6 +2,7 @@ import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress
 import { useState } from 'react';
 import { createModule } from '../api/moduleApi'; 
 import { Module } from '../model/module';
+import { useLoading } from '../../../context/LoadingContext';
  
  
  
@@ -13,7 +14,7 @@ interface moduleProps {
 
 export default function ModuleCard  ({ onSubmit,onEditing = false  }:moduleProps)  {
   const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { loading, setLoading } = useLoading();
   const [error, setError] = useState('');
   return (
     <Box sx={{ maxWidth: 400, margin: 'auto', padding: 2 }}
@@ -24,13 +25,19 @@ export default function ModuleCard  ({ onSubmit,onEditing = false  }:moduleProps
               e.preventDefault()
               const formData =  new FormData(e.currentTarget)
               const nowName = formData.get('name') as string
+
+              setLoading(true)
               createModule( nowName).then(
                   res=>{
                   console.log(res,'create success')
                   onSubmit?.(res)
+                  setLoading(false)
                 }
-                ).catch(error => console.log(error))
-               
+                ).catch(error => {
+                  console.log(error)
+                  setLoading(false)
+                })
+
                }}>
  
         <Typography variant="h6" gutterBottom>

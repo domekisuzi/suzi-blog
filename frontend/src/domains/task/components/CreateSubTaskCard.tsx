@@ -10,6 +10,7 @@ import { dateUtils } from '../../../shared/utils/DateUtil';
 import Box from '@mui/material/Box';
 import { TextField } from '@mui/material';
 import { createSubtask } from '../api/taskApi';
+import { useLoading } from '../../../context/LoadingContext';
  
 interface CreateSubTaskCardProps {
     taskId: string; // ID of the parent task
@@ -17,7 +18,7 @@ interface CreateSubTaskCardProps {
 }
 
 export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTaskCardProps  ) {
-
+    const {loading,setLoading} = useLoading();
     const [dueDateNow, setDueDate] = React.useState<string | null>(null);
     const [subTaskTitle, setSubTaskTitle] = React.useState('');
     dayjs.extend(utc)
@@ -28,6 +29,7 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                                    component="form"
                                    onSubmit={(e)=> {
                                        e.preventDefault()
+                                       setLoading(true)
                                         const formData =  new FormData(e.currentTarget)
                                         const taskData: Partial<Subtask> = {
                                             title: formData.get('title') as string,
@@ -47,7 +49,9 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                                                 console.log("创建子任务失败",taskData)
                                                 console.log(error)  
                                                 }
-                                        )
+                                        ).finally(()=>{
+                                            setLoading(false)
+                                        })
 
                                        onSubmit(taskData )
                                        

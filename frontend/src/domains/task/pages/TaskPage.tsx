@@ -8,7 +8,9 @@ import {
     DialogTitle,
     DialogActions,
     TextField,
-    Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton
+    Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton,
+    Backdrop,
+    CircularProgress
 } from "@mui/material";
 import {  Task, TaskPriority, TaskPriorityValues,Subtask, TaskDetailVo} from "../model/taskTypes";
 import styles from  "./TaskPage.module.css"
@@ -25,19 +27,21 @@ import MouduleListCard from '../../module/components/ModuleListCard';
 import { fetchModules } from '../../module/api/moduleApi';
 import { set } from 'date-fns';
 import { Module } from '../../module/model/module';
+import { useLoading } from '../../../context/LoadingContext';
 //  后续再设计是否会有页面方面的内容
 //  先防止module列表，改为其他格式吧
 
 
 const TaskPage: React.FC=() => {
  
-
+    const {loading,setLoading} = useLoading()
     const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
     const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
      
     const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
 
     const [selectedModuleId, setSelectedModuleId] = React.useState<string | undefined>(undefined);
+
 
     
 
@@ -105,14 +109,18 @@ const TaskPage: React.FC=() => {
     }
 
     const handleDeleteTask = (task:Task) =>{
+    
         if (window.confirm("Are you sure you want to delete this task?")) {
+            setLoading(true)
             deleteTask(task.id).then(
                 ()=>{
                     freshTaskVoList()
                     freshTasksList()
                     setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
                 }
-            )
+            ).finally(()=>{
+                setLoading(false)
+            })
         }
         setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
     }
@@ -122,6 +130,7 @@ const TaskPage: React.FC=() => {
         // 触发任务筛选逻辑
     };
     const handleCreateModuleSubmit = (module: Module ) => {
+        
         handleCreateModuleClose()
         setModuleList(pre => pre ? [...pre, module] : [module])
      }
@@ -134,7 +143,7 @@ const TaskPage: React.FC=() => {
     }
 
     const handleEditTaskSubmit = ()=>{
-
+        setLoading(true)
         if(nowDetailTask) {
             updateTask(nowDetailTask.id, nowDetailTask).then(() => {
                 console.log("update success!",nowDetailTask)
@@ -150,8 +159,12 @@ const TaskPage: React.FC=() => {
                 //TODO('create the update success animation to alert user')
                 freshTasksList()
                 freshTaskVoList()//works ! 
-                
+                setLoading(false)
                 setEditTaskOpen(false)
+            }).catch(error => {
+                console.log("update failed", error)
+                setEditTaskOpen(false)
+                setLoading(false)
             })
         }
         else{
@@ -224,6 +237,9 @@ const TaskPage: React.FC=() => {
 
     return(
     <div className={styles.container}>
+        <Backdrop open={loading} sx={{ zIndex: 9999 }}>
+            <CircularProgress color="inherit" />
+        </Backdrop>
         this is TaskPage
         <h1>
             Work Plan

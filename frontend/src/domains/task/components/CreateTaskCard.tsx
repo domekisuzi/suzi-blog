@@ -17,6 +17,8 @@ import { createTask } from '../api/taskApi';
 import { fetchModules } from '../../module/api/moduleApi';
 import { Module } from '../../module/model/module';
 import { set } from 'date-fns';
+import { useLoading } from '../../../context/LoadingContext';
+import { se } from 'date-fns/locale';
 interface Props {
     onSubmit:(task:Task) => void
 
@@ -27,9 +29,10 @@ interface Props {
 export default function CreateTaskCard({onSubmit}:Props ) {
     const [dueDate, setDueDate] = React.useState<string | null>(null);
     const [moduleList, setModuleList] = React.useState<Module[] | null>(null);
-    const [loading,setLoading] = React.useState(true)
+    const { loading, setLoading } = useLoading()
     dayjs.extend(utc)
-     useEffect(() =>{
+     useEffect(() => {
+            setLoading(true)
             fetchModules().then(res=>{
                 setModuleList(res)
                 setLoading(false)
@@ -37,11 +40,11 @@ export default function CreateTaskCard({onSubmit}:Props ) {
         ).catch(error=>console.log(error))
     },[])
 
-    if(loading){
-        return (<Backdrop open={loading} sx={{ zIndex: 999 }}>
-                    <CircularProgress color="inherit" />
-                </Backdrop>)
-    }
+    // if(loading){
+    //     return (<Backdrop open={loading} sx={{ zIndex: 999 }}>
+    //                 <CircularProgress color="inherit" />
+    //             </Backdrop>)
+    // }
 
     return moduleList &&  (
        <Card> 
@@ -52,6 +55,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                                    component="form"
                                    onSubmit={(e)=> {
                                     e.preventDefault()
+                                    setLoading(true)
             const formData =  new FormData(e.currentTarget)
             
             const moduleName  =   formData.get('moduleId') as string 
@@ -69,6 +73,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                 if(res){
                     //TODO('create the update success animation to alert user')
                     onSubmit(taskData)
+                    setLoading(false)
                 }
                 
                 console.log("创建任务成功",res)
@@ -76,6 +81,7 @@ export default function CreateTaskCard({onSubmit}:Props ) {
                         (error)=>{
                             console.log("创建任务失败")
                             console.log(error)
+                            setLoading(false)
                         }
                     )
                                    }
