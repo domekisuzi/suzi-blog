@@ -22,7 +22,6 @@ public class TaskController {
 
     private final TaskService taskService;
 
-
     //convert it to DTO but not entity     
     @GetMapping
     public   ResponseEntity<List<TaskDTO>> getAll() {
@@ -37,10 +36,11 @@ public class TaskController {
     }
 
     @PostMapping
-    public TaskDTO create(@RequestBody @Valid TaskDTO task) {
+    public ResponseEntity<TaskDTO> create(@RequestBody @Valid TaskDTO task) {
         task.setCreatedAt(LocalDateTime.now().toString());
         task.setUpdatedAt(LocalDateTime.now().toString());
-        return taskService.createTask(task);
+        TaskDTO reTaskDTO = taskService.createTask(task);
+        return ResponseEntity.ok(reTaskDTO);
     }
 
     @PutMapping("/{id}")
@@ -54,4 +54,5 @@ public class TaskController {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
+
 }

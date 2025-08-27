@@ -108,6 +108,8 @@ const TaskPage: React.FC=() => {
         if (window.confirm("Are you sure you want to delete this task?")) {
             deleteTask(task.id).then(
                 ()=>{
+                    freshTaskVoList()
+                    freshTasksList()
                     setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
                 }
             )
@@ -127,6 +129,8 @@ const TaskPage: React.FC=() => {
         
         handleCreateTaskClose()
         setTaskList(pre => pre ? [...pre, task] : [task])
+        freshTaskVoList()
+        freshTasksList()
     }
 
     const handleEditTaskSubmit = ()=>{
@@ -134,8 +138,19 @@ const TaskPage: React.FC=() => {
         if(nowDetailTask) {
             updateTask(nowDetailTask.id, nowDetailTask).then(() => {
                 console.log("update success!",nowDetailTask)
+                setTaskList(pre =>
+                pre
+                    ? pre.map(task =>
+                        task.id === nowDetailTask?.id
+                        ? { ...nowDetailTask } // 保证新引用
+                        : task
+                    )
+                    : []
+                )
                 //TODO('create the update success animation to alert user')
-                setTaskList(pre => pre ? pre.map(task => task.id === nowDetailTask?.id ? nowDetailTask : task) : [])
+                freshTasksList()
+                freshTaskVoList()//works ! 
+                
                 setEditTaskOpen(false)
             })
         }
@@ -207,20 +222,6 @@ const TaskPage: React.FC=() => {
         console.log("init task page success!")
     },[])
 
-    //also need a var to show completedTask,then use a button to change the task state
-    const uncompletedTasks:Task[] =   useMemo (() =>{ // maybe sometimes we need to show  the work both completed and uncompleted
-        if(taskList){
-           return  taskList.filter(task => !task.completed)
-        }
-        return  []
-    },[taskList])
-
-    const  completedTasks:Task[] =   useMemo (() =>{ // maybe sometimes we need to show  the work both completed and uncompleted
-        if(taskList){
-            return  taskList.filter(task => task.completed)
-        }
-        return  []
-    },[taskList])
     return(
     <div className={styles.container}>
         this is TaskPage
@@ -389,13 +390,7 @@ const TaskPage: React.FC=() => {
                 </DialogActions>
             </Dialog>
         </div>
-
-        
- 
-
     </div>
-
-    
     )
 }
 

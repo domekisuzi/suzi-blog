@@ -40,7 +40,7 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
         if(onChange){
             const newValue:Task = { ...task, [field]: value } 
             onChange(newValue) // update the task with the new value
-            console.log('onChange', newValue)
+            // console.log('onChange', newValue)
         }
             // onChange?.({ ...task, [field]: value })  // a new grammar named optional chaining,it avoids use the function  of null which causes error
     }
@@ -51,6 +51,7 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
         ) || []
         onChange?.({ ...task, subtasks: updatedSubtasks })
     }
+
     return (
         <>
             {/* 标题 */}

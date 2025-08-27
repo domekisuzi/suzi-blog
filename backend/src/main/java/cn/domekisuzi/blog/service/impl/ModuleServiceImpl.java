@@ -8,7 +8,7 @@ import cn.domekisuzi.blog.repository.ModuleRepository;
 import cn.domekisuzi.blog.repository.projection.ModuleDetailProjection;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import cn.domekisuzi.blog.dto.ModuleDTO;
@@ -24,8 +24,6 @@ import cn.domekisuzi.blog.vo.ModuleDetailVo;
 @Service
 @RequiredArgsConstructor
 public class ModuleServiceImpl implements ModuleService {
-
-   
     private final ModuleRepository moduleRepository;
    
     private final ModuleMapper moduleMapper;

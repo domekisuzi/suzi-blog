@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -20,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Table(name = "tasks") // 显式映射数据库表名
 @NoArgsConstructor
 @AllArgsConstructor
-// @EqualsAndHashCode(callSuper=true)
+@EqualsAndHashCode(callSuper=true)
 public class Task   extends BaseEntity {
     @Id
     private String id;
@@ -49,4 +50,6 @@ public class Task   extends BaseEntity {
     @JoinColumn(name = "category_id")
     @JsonBackReference // 处理循环引用
     private Category category;   
+
+ 
 }

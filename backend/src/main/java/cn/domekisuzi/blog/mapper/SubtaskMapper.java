@@ -53,7 +53,7 @@ public class SubtaskMapper {
             }
 
             try {
-                List<SubtaskDTO>  res =  objectMapper.readValue(subtasks, new TypeReference<List<SubtaskDTO>>() {});
+                List<SubtaskDTO>  res =  objectMapper.readValue(subtasks, new TypeReference<List<SubtaskDTO>>() {}); 
                 return res.stream().filter( sub -> sub != null && sub.getTitle() != null && !sub.getTitle().isBlank()).collect(Collectors.toList()); // filter the empty object 
             } catch (Exception e) {
                 // 可根据需要记录日志或抛出自定义异常
