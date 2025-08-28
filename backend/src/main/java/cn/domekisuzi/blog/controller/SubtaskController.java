@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
  
 
 @RestController
@@ -71,4 +74,16 @@ public class SubtaskController {
         return ResponseEntity.ok(subtasks);
     }
 
+    @DeleteMapping("/subtasks/{subtaskId}")
+    public ResponseEntity<Void> deleteSubtaskById(@PathVariable String subtaskId) {
+        subtaskService.deleteSubtaskById(subtaskId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/subtasks")
+    public ResponseEntity<SubtaskDTO> updateSubtask(@RequestBody SubtaskDTO dto) {
+        SubtaskDTO updated = subtaskService.updateSubtask(dto);
+        return ResponseEntity.ok(updated);
+    }
+    
 }

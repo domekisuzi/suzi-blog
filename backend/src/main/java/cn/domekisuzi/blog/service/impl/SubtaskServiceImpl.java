@@ -66,6 +66,7 @@ public class SubtaskServiceImpl implements SubtaskService {
         return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
 
+    //TODO("以后有空可以优化这个，其实不需要taskId")
     @Override
     public void deleteSubtask(String taskId, String subtaskId) {
         Subtask subtask = subtaskRepo.findByIdAndTaskId(subtaskId, taskId)
@@ -76,6 +77,23 @@ public class SubtaskServiceImpl implements SubtaskService {
     @Override
     public List<SubtaskDTO> parseSubtasksJson(String subtasks) {
         return SubtaskMapper.parseSubtasksJson(subtasks);
+    }
+
+    @Override
+    public void deleteSubtaskById(String subtaskId) {
+        Subtask subtask = subtaskRepo.findById(subtaskId)
+                .orElseThrow(() -> new IllegalArgumentException("子任务不存在"));
+        subtaskRepo.delete(subtask);
+    }
+
+    @Override
+    public SubtaskDTO updateSubtask(SubtaskDTO dto) {
+        // TODO Auto-generated method stub
+        Subtask subtask = subtaskRepo.findById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("子任务不存在"));
+        subtask.setTitle(dto.getTitle());
+        subtask.setCompleted(dto.isCompleted());
+        return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
 
 }

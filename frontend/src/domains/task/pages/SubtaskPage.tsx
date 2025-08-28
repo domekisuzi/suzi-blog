@@ -4,6 +4,7 @@ import { Subtask } from "../model/taskTypes";
 import { useEffect } from "react";
 import { getAllSubtasks } from "../api/taskApi";
 import React from "react";
+import { set } from "date-fns";
 const SubtaskPage : React.FC = () => {
     const mockSub: Subtask = { id: '1', title: "Sample Subtask", completed: false, createdAt: new Date().toISOString(), taskId: '1' }
     const mockSubtasks: Subtask[] = [mockSub, { ...mockSub, id: '2', title: "Another Subtask", completed: true }];
@@ -16,13 +17,25 @@ const SubtaskPage : React.FC = () => {
             console.error(err);
         });
     }, []);
+
+    const handleSubtaskDelete = ( ) => {
+        // Implement delete functionality
+    };
+
+    const handleSubtaskEdit = ( subtask:Subtask ) => {
+        setSubtasks((prev) =>
+            prev.map((s) => (s.id === subtask.id ? { ...s, ...subtask } : s))
+        );
+
+    };
+
     return (
         <div>
             <List >
                 <ListItem  sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 2, px: 1 }}>
                      {
                         subtasks && subtasks.map((subtask) => (
-                            <SubtaskCard  key={subtask.id} subtask={subtask} />
+                            <SubtaskCard onDelete={ handleSubtaskDelete } onEdit={  handleSubtaskEdit } key={subtask.id} subtask={subtask} />
                         ))
                      }
  

@@ -18,6 +18,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import { Task, TaskDetailVo } from '../model/taskTypes'
 import { dateUtils } from '../../../shared/utils/DateUtil'
+import { useLoading } from '../../../context/LoadingContext'
  
  /**
   * this component is used to display the task details and its subtask 
@@ -32,8 +33,7 @@ interface Props {
 
 export default function TaskDetailCard({ task, isEditing = false, onChange }: Props) {
 
-
-
+    const { loading, setLoading } = useLoading();
     const handleFieldChange = (field: keyof Task) => (e: any) => {
         const value = e.target.value
         console.log ('FieldChange', field, value)

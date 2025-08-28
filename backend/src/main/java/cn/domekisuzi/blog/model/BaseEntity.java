@@ -37,6 +37,4 @@ public abstract class BaseEntity {
         System.out.println("触发po层UUID生成" + this.id);
     }
 
-
-    
 }

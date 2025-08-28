@@ -393,7 +393,6 @@ const TaskPage: React.FC=() => {
                     nowDetailTask && 
                         <CreateSubTaskCard   taskId={nowDetailTask.id}  onSubmit={handleCreateSubTaskSubmit}  />
                     }
-
                 </DialogContent>
                 <DialogActions>
 

@@ -29,6 +29,7 @@ public class Subtask extends BaseEntity {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    
     @ManyToOne
     @JoinColumn(name = "task_id")
     @JsonBackReference

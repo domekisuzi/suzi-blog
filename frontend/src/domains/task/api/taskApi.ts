@@ -1,3 +1,4 @@
+import exp from "constants"
 import { api } from "../../../shared/utils/APIUtils"
 import { Subtask, Task, TaskDetailVo } from "../model/taskTypes"
 
@@ -66,4 +67,13 @@ export async function getAllSubtasks (): Promise<Subtask[]>  {
 export async function getAllTaskVos(): Promise<TaskDetailVo[]> {
    const res = await api.get(`/tasks/vo`);
    return res.data; 
+}
+
+export async function deleteSubtaskById(subtaskId: string): Promise<void> {
+    await api.delete(`/tasks/subtask/${subtaskId}`);
+}
+
+export async function updateSubtaskByEntity(dto: Subtask): Promise<Subtask> {
+    const res = await api.post(`/tasks/subtasks`, dto);
+    return res.data;
 }
