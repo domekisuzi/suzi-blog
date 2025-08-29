@@ -64,7 +64,10 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
   };
 
   return (
-    <Card  sx={{ width: "85%", borderRadius: "12px", mb: 1,  }}>
+    <Card  sx={{ width: "85%", borderRadius: "12px", mb: 1,   
+          "&:hover": {
+            backgroundColor: "rgba(0, 0, 0, 0.04)",
+          } }}>
       <CardContent
         
         sx={{
@@ -76,9 +79,6 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
            "&:last-child":{
             paddingBottom: 0
            },
-          "&:hover": {
-            backgroundColor: "rgba(0, 0, 0, 0.04)",
-          },
           justifyItems: "center",
           m:1 ,
         }}

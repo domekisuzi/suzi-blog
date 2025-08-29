@@ -52,6 +52,16 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
         onChange?.({ ...task, subtasks: updatedSubtasks })
     }
 
+    function setEditDueDate(value: string): void {
+        if(onChange){
+            const newValue:Task = { ...task, dueDate: 
+            dateUtils.toBackendFormat (value)
+            } 
+            onChange(newValue) // update the task with the new value
+            // console.log('onChange', newValue)
+        }
+    }
+
     return (
         <>
             {/* 标题 */}
@@ -82,10 +92,22 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                 模块：{task.moduleName ?? '—'} ｜
             </Typography>
 
-            {/* 截止时间 */}
+            {
+                isEditing ?
+               
+                    <TextField
+                        type="date"
+                        variant="standard"
+                        value={task.dueDate ? task.dueDate.slice(0, 10) : ""}
+                        onChange={e => setEditDueDate(e.target.value)}
+                        size="small"
+                        sx={{ minWidth: 120 }}/>
+                :
             <Typography variant="body2" color="text.secondary" gutterBottom>
                 创建时间：{task.createdAt} ｜ 截止：{ task.dueDate ? dateUtils.toDisplayFormat( task.dueDate) : '无' }
             </Typography>
+            
+            }
 
             <Divider sx={{ my: 2 }} />
 

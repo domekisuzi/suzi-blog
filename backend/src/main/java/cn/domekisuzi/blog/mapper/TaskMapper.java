@@ -36,16 +36,20 @@ public class TaskMapper {
         task.setCompleted(dto.isCompleted());
 
         if (dto.getDueDate() != null && !dto.getDueDate().isEmpty()) {
+            if(dto.getDueDate().isEmpty()){
+                task.setDueDate(null);
+            }
+            else 
             task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
         }
 
         task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
         task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
 
-        if (dto.getModuleName() != null) {
+        if (dto.getModuleName() != null && dto.getModuleName() != "") {
             Module module = moduleRepository.findByName(dto.getModuleName())
                 .orElseThrow(() -> new IllegalArgumentException("模块不存在"));
-            task.setModule(module);
+            task.setModule(module);// if one entity do not have any module, it will be null directly 
         }
 
         if (dto.getSubtasks() != null) {

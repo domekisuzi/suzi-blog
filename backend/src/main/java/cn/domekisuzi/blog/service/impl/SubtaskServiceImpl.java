@@ -48,9 +48,6 @@ public class SubtaskServiceImpl implements SubtaskService {
         // subtask.setTitle(dto.getTitle());
         subtask.setCreatedAt(LocalDateTime.now());
         subtask.setUpdatedAt(LocalDateTime.now());
-        // if(dto.getDueDate() != null && dto.getDueDate() != "") {
-        //     subtask.setDueDate(LocalDateTime.parse(dto.getDueDate()));
-        // }
         Subtask saved = subtaskRepo.save(subtask);
         return SubtaskMapper.toDTO(saved);
     }
@@ -63,6 +60,7 @@ public class SubtaskServiceImpl implements SubtaskService {
 
         subtask.setTitle(dto.getTitle());
         subtask.setCompleted(dto.isCompleted());
+        subtask.setDueDate(dto.getDueDate() != null && !dto.getDueDate().isEmpty() ? LocalDateTime.parse(dto.getDueDate()) : null);
         return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
 
@@ -88,12 +86,12 @@ public class SubtaskServiceImpl implements SubtaskService {
 
     @Override
     public SubtaskDTO updateSubtask(SubtaskDTO dto) {
-        // TODO Auto-generated method stub
+       
         Subtask subtask = subtaskRepo.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("子任务不存在"));
         subtask.setTitle(dto.getTitle());
         subtask.setCompleted(dto.isCompleted());
+        subtask.setDueDate(dto.getDueDate() != null && !dto.getDueDate().isEmpty() ? LocalDateTime.parse(dto.getDueDate()) : null);
         return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
-
 }

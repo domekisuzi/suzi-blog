@@ -24,7 +24,12 @@ public class SubtaskMapper {
         sub.setCompleted(dto.isCompleted());
 
         if (dto.getDueDate() != null && !dto.getDueDate().isEmpty()) {
-            sub.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+            if(dto.getDueDate().isEmpty()){
+                sub.setDueDate(null);
+            }
+            else {
+                sub.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+            }
         }
 
         return sub;
