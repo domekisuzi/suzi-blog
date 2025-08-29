@@ -24,6 +24,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
         t.title AS title,
         t.description AS description,
         m.name AS moduleName,
+        t.priority AS priority,
         IF(t.completed = 1, TRUE, FALSE) AS completedInteger,
         t.due_date AS dueDate,
         t.created_at AS createdAt,

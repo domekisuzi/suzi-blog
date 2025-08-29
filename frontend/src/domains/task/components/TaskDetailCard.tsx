@@ -78,6 +78,39 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
             )}
 
             {/* 优先级与完成状态 */}
+
+            {
+            isEditing? 
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <TextField
+                    select
+                    label="优先级"
+                    value={task.priority}
+                    onChange={handleFieldChange('priority')}
+                    SelectProps={{ native: true }}
+                    size="small"
+                    sx={{ minWidth: 120 }}
+                >
+                    <option value="">无</option>
+                    <option value="low">低</option>
+                    <option value="medium">中</option>
+                    <option value="high">高</option>
+                </TextField>
+
+                <TextField
+                    select
+                    label="状态"
+                    value={task.completed ? 'Completed' : 'Pending'}
+                    onChange={(e) => handleFieldChange('completed')({ target: { value: e.target.value === 'Completed' } })}
+                    SelectProps={{ native: true }}
+                    size="small"
+                    sx={{ minWidth: 120 }}
+                >
+                    <option value="Pending">未完成</option>
+                    <option value="Completed">已完成</option>
+                </TextField>
+                </Box>
+            :
             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <Chip label={`优先级: ${task.priority}`} color="primary" size="small" />
                 <Chip
@@ -86,6 +119,8 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                     size="small"
                 />
             </Box>
+            }
+           
 
             {/* 模块与分类 */}
             <Typography variant="body2" color="text.secondary" gutterBottom>

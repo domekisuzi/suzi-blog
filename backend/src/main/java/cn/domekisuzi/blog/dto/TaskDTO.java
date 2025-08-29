@@ -38,7 +38,7 @@ public class TaskDTO extends BaseDTO {
     private String moduleName;
 
     /**
-     * 任务优先级（如 HIGH / MEDIUM / LOW）
+     * 任务优先级（如 high / medium / low）
      */
     private String priority;
 

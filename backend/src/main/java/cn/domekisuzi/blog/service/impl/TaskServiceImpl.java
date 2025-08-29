@@ -102,24 +102,12 @@ public class TaskServiceImpl implements TaskService {
                         proj.getTitle(),
                         proj.getDescription(),
                         proj.getModuleName(),
+                        proj.getPriority(),
                         proj.getCompletedInteger() == 1 ? true : false,
                         proj.getDueDate(),
                         proj.getCreatedAt(),
                         proj.getCompletedRate(),
-                        proj.getSubtasks() != null ? subtaskService.parseSubtasksJson(proj.getSubtasks()) : List.of() // if
-                                                                                                                      // set
-                                                                                                                      // it
-                                                                                                                      // to
-                                                                                                                      // null,it
-                                                                                                                      // will
-                                                                                                                      // create
-                                                                                                                      // a
-                                                                                                                      // new
-                                                                                                                      // subtask
-                                                                                                                      // object
-                                                                                                                      // with
-                                                                                                                      // null
-                                                                                                                      // value
+                        proj.getSubtasks() != null ? subtaskService.parseSubtasksJson(proj.getSubtasks()) : List.of()  
                 ))
                 .collect(Collectors.toList());
 

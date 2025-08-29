@@ -15,7 +15,7 @@ public class TaskDetailVo {
     private String title;
     private String description;
     private String moduleName;
- 
+    private String priority;
     private Boolean completed;
     private String dueDate;
     private String createdAt;
