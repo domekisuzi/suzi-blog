@@ -6,6 +6,7 @@ import { deleteSubtaskById, updateSubtask, updateSubtaskByEntity } from "../api/
 import { useLoading } from "../../../context/LoadingContext";
 import { Subtask } from "../model/taskTypes";
 import { set } from "date-fns";
+import { se } from "date-fns/locale";
 
 interface subtaskProps {
   subtask: Subtask;
@@ -63,6 +64,27 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
     setIsEditing(false);
   };
 
+
+  const handleSubtaskComplete = (completed: boolean) => {
+    // 这里可以加校验
+    
+    onEdit({
+      ...subtask,
+      completed: !completed,
+    });
+    setLoading(true);
+    updateSubtaskByEntity( {...subtask, completed: !completed})
+      .then((res) => {
+        console.log("Subtask completed:", res);
+      })
+      .catch((e) => {
+        console.log(e);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   return (
     <Card  sx={{ width: "85%", borderRadius: "12px", mb: 1,   
           "&:hover": {
@@ -86,9 +108,9 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
       >
         <Box sx={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
           {subtask.completed ? (
-            <CheckCircleOutlineOutlinedIcon sx={{ color: "green", "&:hover": { color: "gray" } }} />
+            <CheckCircleOutlineOutlinedIcon sx={{ color: "green", "&:hover": { color: "gray",cursor: "pointer"} }} onClick={() => handleSubtaskComplete(subtask.completed)} />
           ) : (
-            <CheckCircleOutlineOutlinedIcon sx={{ "&:hover": { color: "red" } }} />
+            <CheckCircleOutlineOutlinedIcon sx={{ "&:hover": { color: "green" ,cursor: "pointer" } }} onClick={() => handleSubtaskComplete(subtask.completed)} />
           )}
 
           {isEditing ? (

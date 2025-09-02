@@ -52,9 +52,8 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                                         ).finally(()=>{
                                             setLoading(false)
                                         })
-
+                                        
                                        onSubmit(taskData )
-                                       
                                    }
                                 }
                                    sx={{
