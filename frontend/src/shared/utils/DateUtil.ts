@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-
+//this code is just show the datebase date,need backend to deal with the tiemzoine 
 const DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss'
 const DISPLAY_FORMAT = 'YYYY-MM-DD HH:mm'
 

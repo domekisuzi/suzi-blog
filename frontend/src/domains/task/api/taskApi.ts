@@ -70,7 +70,7 @@ export async function getAllTaskVos(): Promise<TaskDetailVo[]> {
 }
 
 export async function deleteSubtaskById(subtaskId: string): Promise<void> {
-    await api.delete(`/tasks/subtask/${subtaskId}`);
+    await api.delete(`/tasks/subtasks/${subtaskId}`);
 }
 
 export async function updateSubtaskByEntity(dto: Subtask): Promise<Subtask> {

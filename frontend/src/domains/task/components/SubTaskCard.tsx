@@ -29,9 +29,10 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
   }, [isEditing, subtask.title, subtask.dueDate]);
 
   const handleSubtaskDelete = (subtaskId: string) => {
-    setLoading(true);
+ 
     deleteSubtaskById(subtaskId)
       .then(() => {
+
         onDelete();
       })
       .catch((e) => {

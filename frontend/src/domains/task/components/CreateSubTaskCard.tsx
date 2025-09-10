@@ -71,7 +71,7 @@ export default function CreateSubTaskCard( { taskId ,onSubmit   }: CreateSubTask
                                     <DatePicker label="Date"
                                         onChange={ 
                                             (datepicker) =>{
-                                                setDueDate( dayjs(datepicker).utc().format("YYYY-MM-DDTHH:mm:ss") )
+                                                setDueDate( dayjs(datepicker).local().format("YYYY-MM-DDTHH:mm:ss") )
                                             }
                                         }  />
                                </LocalizationProvider>                     

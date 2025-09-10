@@ -57,7 +57,6 @@ const TaskPage: React.FC=() => {
 
     const [createModuleOpen,setCreateModuleOpen]  = React.useState(false)
 
- 
 
     const handleCreateModuleOpen =  ()=>{
         setCreateModuleOpen(true)
@@ -125,10 +124,7 @@ const TaskPage: React.FC=() => {
         setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
     }
 
-    const handleModuleSelect = (id: string) => {
-        setSelectedModuleId(id);
-        // 触发任务筛选逻辑
-    };
+ 
     const handleCreateModuleSubmit = (module: Module ) => {
         
         handleCreateModuleClose()
@@ -237,9 +233,9 @@ const TaskPage: React.FC=() => {
 
     return(
     <div className={styles.container}>
-        <Backdrop open={loading} sx={{ zIndex: 9999 }}>
+        {/* <Backdrop open={loading} sx={{ zIndex: 9999 }}>
             <CircularProgress color="inherit" />
-        </Backdrop>
+        </Backdrop> */}
         this is TaskPage
         <h1>
             Work Plan
