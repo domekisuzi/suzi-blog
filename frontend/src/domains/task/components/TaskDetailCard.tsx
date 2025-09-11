@@ -136,8 +136,8 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                      <TextField
                         type="date"
                         variant="standard"
-                        value={task.dueDate ? task.dueDate.slice(0, 10) : ""}
-                        onChange={e => setEditDueDate(e.target.value)}
+                        value={task.dueDate ? dateUtils.toDisplayWithPattern(task.dueDate, 'YYYY-MM-DD') : ''}
+                        onChange={e => {setEditDueDate( dateUtils.toBackendFormat(e.target.value))}}
                         size="small"
                         sx={{ minWidth: 120 }}/>
                 :

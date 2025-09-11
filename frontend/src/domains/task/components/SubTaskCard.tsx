@@ -7,6 +7,7 @@ import { useLoading } from "../../../context/LoadingContext";
 import { Subtask } from "../model/taskTypes";
 import { set } from "date-fns";
 import { se } from "date-fns/locale";
+import { dateUtils } from "../../../shared/utils/DateUtil";
 
 interface subtaskProps {
   subtask: Subtask;
@@ -44,6 +45,7 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
   };
 
   const handleSubtaskUpdate = () => {
+    setLoading(true);
     // 这里可以加校验
     console.log("Updating subtask:", subtask.id, editTitle, editDueDate);
     onEdit({
@@ -60,6 +62,8 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
         console.log("Subtask updated:", res);
     }).catch((e) => {
         console.log(e);
+    }).finally(() => {
+        setLoading(false);
     });
 
     setIsEditing(false);
@@ -154,14 +158,14 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
             <TextField
               type="date"
               variant="standard"
-              value={editDueDate ? editDueDate.slice(0, 10) : ""}
-              onChange={e => setEditDueDate(e.target.value)}
+              value={editDueDate ?  dateUtils.toDisplayWithPattern(editDueDate, 'YYYY-MM-DD') : ''}
+              onChange={e => setEditDueDate( dateUtils.toBackendFormat(e.target.value) )}
               size="small"
               sx={{ minWidth: 120 }}
             />
           ) : subtask.dueDate ? (
             <Typography >
-              Due at: {new Date(subtask.dueDate).toLocaleDateString()}
+              Due at: {dateUtils.toDisplayFormat(subtask.dueDate)}
             </Typography>
           ) : (
             <Typography variant="body2" color="text.secondary">
@@ -176,14 +180,19 @@ export default function SubtaskCard({ subtask, onDelete, onEdit }: subtaskProps)
               <IconButton aria-label="save" size="small" onClick={handleSubtaskUpdate}>
                 <SaveOutlined />
               </IconButton>
-              <IconButton aria-label="cancel" size="small" onClick={() => setIsEditing(false)}>
+              <IconButton aria-label="cancel" size="small" onClick={() =>
+                 setIsEditing(false)
+                 
+                 }>
                 <CancelOutlined />
               </IconButton>
             </>
           ) : (
             <>
-              <IconButton aria-label="edit" size="small" onClick={() => setIsEditing(true)}>
-                <EditOutlined />
+              <IconButton aria-label="edit" size="small" onClick={() =>
+                 setIsEditing(true)}>
+                <EditOutlined 
+                />
               </IconButton>
               <IconButton
                 aria-label="delete"
