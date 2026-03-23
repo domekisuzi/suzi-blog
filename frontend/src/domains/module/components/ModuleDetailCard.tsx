@@ -13,9 +13,11 @@ interface ColorScheme {
 interface ModuleDetailProps {
     module: Module
     colorScheme?: ColorScheme
+    onEdit?: (module: Module) => void
+    onDelete?: (module: Module) => void
 }
 
-const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme }) => {
+const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme, onEdit, onDelete }) => {
     const navigate = useNavigate()
     const defaultColor = { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff' }
     const colors = colorScheme || defaultColor
@@ -47,14 +49,14 @@ const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme }) 
             <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
                 <IconButton 
                     size="small" 
-                    onClick={(e) => { e.stopPropagation(); console.log('edit', module.id) }}
+                    onClick={(e) => { e.stopPropagation(); onEdit?.(module) }}
                     sx={{ color: colors.color, opacity: 0.7, '&:hover': { opacity: 1 } }}
                 >
                     <EditIcon fontSize="small" />
                 </IconButton>
                 <IconButton 
                     size="small"
-                    onClick={(e) => { e.stopPropagation(); console.log('delete', module.id) }}
+                    onClick={(e) => { e.stopPropagation(); onDelete?.(module) }}
                     sx={{ color: colors.color, opacity: 0.7, '&:hover': { opacity: 1 } }}
                 >
                     <DeleteIcon fontSize="small" />

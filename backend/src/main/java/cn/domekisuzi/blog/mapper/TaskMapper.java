@@ -78,8 +78,9 @@ public class TaskMapper {
             dto.setDueDate(task.getDueDate().toString());
         }
 
-        dto.setCreatedAt(task.getCreatedAt().toString());
-        dto.setUpdatedAt(task.getUpdatedAt().toString());
+        // 处理 null 值情况
+        dto.setCreatedAt(task.getCreatedAt() != null ? task.getCreatedAt().toString() : "");
+        dto.setUpdatedAt(task.getUpdatedAt() != null ? task.getUpdatedAt().toString() : "");
         dto.setModuleName(task.getModule() != null ? task.getModule().getName() : null);
 
         if (task.getSubtasks() != null) {

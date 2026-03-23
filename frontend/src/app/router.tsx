@@ -6,6 +6,7 @@ import BookListPage from '../domains/booklist/pages/BookListPage'
 import NotFound from '../pages/NotFound'
 import ModulePage from '../domains/module/pages/ModulePage'
 import SubtaskPage from '../domains/task/pages/SubtaskPage'
+import TimelinePage from '../domains/timeline/pages/TimelinePage'
 
 const AppRoutes = () => (
     <Routes>
@@ -16,7 +17,7 @@ const AppRoutes = () => (
         <Route path='/subtasks/:taskId' element={<SubtaskPage />} />
         <Route path='/modules' element={<ModulePage />} />
         <Route path='/modules/:moduleId' element={<ModulePage />} />
-        <Route path='/statistics' element={""} />
+        <Route path='/timeline' element={<TimelinePage />} />
         <Route path="/books" element={<BookListPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="*" element={<Navigate to="/404" />} />

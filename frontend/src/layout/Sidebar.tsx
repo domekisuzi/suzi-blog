@@ -15,15 +15,21 @@ import { ReactComponent as TaskIcon } from '../asserts/icon/task.svg'
 import { ReactComponent as SubTaskIcon } from '../asserts/icon/subtask.svg'
 import { ReactComponent as StatisticsIcon } from '../asserts/icon/statistics.svg'
 import { ReactComponent as ProjectIcon } from '../asserts/icon/project.svg'
+import { ReactComponent as TimelineIcon } from '../asserts/icon/timeline.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    onQuickAdd?: () => void
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onQuickAdd }) => {
     const [open, setOpen] = React.useState(true)
     const navigate = useNavigate()
     const location = useLocation()
 
     const menuItems = [
         { path: '/books', icon: BookListIcon, label: 'Book List' },
+        { path: '/timeline', icon: TimelineIcon, label: 'Timeline' },
     ]
 
     const projectItems = [
@@ -188,6 +194,7 @@ const Sidebar: React.FC = () => {
             <Box sx={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                 <Tooltip title="快速添加" placement="right">
                     <IconButton
+                        onClick={onQuickAdd}
                         sx={{
                             width: '100%',
                             height: 48,

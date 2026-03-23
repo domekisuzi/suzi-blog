@@ -78,6 +78,7 @@ export interface Task {
   updatedAt?: string
   subtasks?: Subtask[]
   moduleName?: string
+  moduleId?: string        // 关联的模块（可选）
   goalId?: string          // 关联的目标（可选）
 }
 

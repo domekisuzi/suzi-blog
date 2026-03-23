@@ -202,15 +202,53 @@ const SubtaskPage: React.FC = () => {
                         anchorEl={sortAnchorEl}
                         open={Boolean(sortAnchorEl)}
                         onClose={handleSortClose}
+                        PaperProps={{
+                            sx: {
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                mt: 1,
+                                minWidth: 180,
+                            }
+                        }}
                     >
-                        <MenuItem onClick={() => handleSortSelect('date')}>
-                            <ListItemText>按创建时间排序</ListItemText>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('date')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'date' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'date' ? '#6366f1' : '#64748b' }}>
+                                📅 按创建时间排序
+                            </ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={() => handleSortSelect('name')}>
-                            <ListItemText>按名称排序</ListItemText>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('name')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'name' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'name' ? '#6366f1' : '#64748b' }}>
+                                🔤 按名称排序
+                            </ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={() => handleSortSelect('status')}>
-                            <ListItemText>按状态排序</ListItemText>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('status')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'status' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'status' ? '#6366f1' : '#64748b' }}>
+                                ✅ 按状态排序
+                            </ListItemText>
                         </MenuItem>
                     </Menu>
                 </Box>

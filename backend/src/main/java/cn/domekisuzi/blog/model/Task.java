@@ -1,10 +1,12 @@
 package cn.domekisuzi.blog.model;
 
 import java.time.LocalDateTime;
- 
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -14,15 +16,15 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
- 
 
 @Entity
-@Data  // Lombok 自动生成 getter/setter
-@Table(name = "tasks") // 显式映射数据库表名
+@Data
+@Builder
+@Table(name = "tasks")
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=true)
-public class Task   extends BaseEntity {
+@EqualsAndHashCode(callSuper = true)
+public class Task extends BaseEntity {
     @Id
     private String id;
 
@@ -42,14 +44,17 @@ public class Task   extends BaseEntity {
     private Module module;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
-    @JsonManagedReference // 处理循环引用
+    @JsonManagedReference
     private List<Subtask> subtasks;
-
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonBackReference // 处理循环引用
-    private Category category;   
+    @JsonBackReference
+    private Category category;
 
- 
+    // 关联的目标列表（多对多）
+    @ManyToMany(mappedBy = "tasks")
+    @Builder.Default
+    @EqualsAndHashCode.Exclude
+    private Set<Goal> goals = new HashSet<>();
 }

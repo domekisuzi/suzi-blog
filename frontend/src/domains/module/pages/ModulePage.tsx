@@ -8,9 +8,10 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ModuleDetailCard from '../components/ModuleDetailCard'
-import { fetchModules } from '../api/moduleApi'
+import { fetchModules, updateModule, deleteModule, createModule } from '../api/moduleApi'
 import { Module } from '../model/module'
 import { getAllTaskVos } from '../../task/api/taskApi'
+import { useLoading } from '../../../context/LoadingContext'
 
 type ViewMode = 'grid' | 'list'
 type SortMode = 'name' | 'date'
@@ -23,6 +24,7 @@ interface ModuleWithProgress extends Module {
 }
 
 const ModulePage: React.FC = () => {
+    const { setLoading } = useLoading()
     const [moduleList, setModuleList] = useState<ModuleWithProgress[]>([])
     const [filteredModules, setFilteredModules] = useState<ModuleWithProgress[]>([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -31,6 +33,24 @@ const ModulePage: React.FC = () => {
     const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null)
     const [addDialogOpen, setAddDialogOpen] = useState(false)
     const [newModuleName, setNewModuleName] = useState('')
+    
+    // 编辑模块相关状态
+    const [editDialogOpen, setEditDialogOpen] = useState(false)
+    const [editingModule, setEditingModule] = useState<ModuleWithProgress | null>(null)
+    const [editModuleName, setEditModuleName] = useState('')
+
+    // 加载数据
+    const loadModules = () => {
+        setLoading(true)
+        Promise.all([fetchModules(), getAllTaskVos()])
+            .then(([modules, taskVos]) => {
+                const modulesWithProgress = calculateModuleProgress(modules, taskVos)
+                setModuleList(modulesWithProgress)
+                setFilteredModules(modulesWithProgress)
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false))
+    }
 
     // 计算模块进度的函数
     const calculateModuleProgress = (modules: Module[], taskVos: any[]): ModuleWithProgress[] => {
@@ -106,21 +126,57 @@ const ModulePage: React.FC = () => {
         handleSortClose()
     }
 
-    const handleAddModule = () => {
+    const handleAddModule = async () => {
         if (newModuleName.trim()) {
-            const newModule: ModuleWithProgress = {
-                id: Date.now().toString(),
-                name: newModuleName,
-                iconSVG: '',
-                createdAt: new Date().toISOString(),
-                taskNumber: 0,
-                completedRate: 0,
-                totalSubtasks: 0,
-                completedSubtasks: 0,
+            setLoading(true)
+            try {
+                await createModule(newModuleName)
+                setNewModuleName('')
+                setAddDialogOpen(false)
+                loadModules()
+            } catch (error) {
+                console.error('Failed to create module:', error)
+            } finally {
+                setLoading(false)
             }
-            setModuleList([...moduleList, newModule])
-            setNewModuleName('')
-            setAddDialogOpen(false)
+        }
+    }
+
+    // 编辑模块
+    const handleEditModule = (module: Module) => {
+        setEditingModule(module as ModuleWithProgress)
+        setEditModuleName(module.name)
+        setEditDialogOpen(true)
+    }
+
+    const handleSaveEdit = async () => {
+        if (editingModule && editModuleName.trim()) {
+            setLoading(true)
+            try {
+                await updateModule(editingModule.id, { name: editModuleName })
+                setEditDialogOpen(false)
+                setEditingModule(null)
+                loadModules()
+            } catch (error) {
+                console.error('Failed to update module:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    // 删除模块
+    const handleDeleteModule = async (module: Module) => {
+        if (window.confirm(`确定要删除模块 "${module.name}" 吗？`)) {
+            setLoading(true)
+            try {
+                await deleteModule(module.id)
+                loadModules()
+            } catch (error) {
+                console.error('Failed to delete module:', error)
+            } finally {
+                setLoading(false)
+            }
         }
     }
 
@@ -284,6 +340,8 @@ const ModulePage: React.FC = () => {
                             key={module.id}
                             module={module} 
                             colorScheme={moduleColors[index % moduleColors.length]}
+                            onEdit={handleEditModule}
+                            onDelete={handleDeleteModule}
                         />
                     ))}
                 </Box>
@@ -329,10 +387,17 @@ const ModulePage: React.FC = () => {
                                 </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 1 }}>
-                                <IconButton size="small">
+                                <IconButton 
+                                    size="small"
+                                    onClick={(e) => { e.stopPropagation(); handleEditModule(module) }}
+                                >
                                     <EditIcon fontSize="small" />
                                 </IconButton>
-                                <IconButton size="small">
+                                <IconButton 
+                                    size="small"
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteModule(module) }}
+                                    sx={{ color: '#dc2626' }}
+                                >
                                     <DeleteIcon fontSize="small" />
                                 </IconButton>
                             </Box>
@@ -401,6 +466,70 @@ const ModulePage: React.FC = () => {
                         }}
                     >
                         添加
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* 编辑模块对话框 */}
+            <Dialog 
+                open={editDialogOpen} 
+                onClose={() => setEditDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    ✏️ 编辑模块
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="模块名称"
+                        fullWidth
+                        variant="outlined"
+                        value={editModuleName}
+                        onChange={(e) => setEditModuleName(e.target.value)}
+                        sx={{ 
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '12px',
+                            }
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={() => setEditDialogOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
+                    </Button>
+                    <Button 
+                        onClick={handleSaveEdit} 
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        保存
                     </Button>
                 </DialogActions>
             </Dialog>

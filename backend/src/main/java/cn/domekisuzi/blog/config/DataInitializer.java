@@ -1,8 +1,10 @@
 package cn.domekisuzi.blog.config;
 
+import cn.domekisuzi.blog.model.Goal;
 import cn.domekisuzi.blog.model.Module;
 import cn.domekisuzi.blog.model.Task;
 import cn.domekisuzi.blog.model.Subtask;
+import cn.domekisuzi.blog.repository.GoalRepository;
 import cn.domekisuzi.blog.repository.ModuleRepository;
 import cn.domekisuzi.blog.repository.TaskRepository;
 import cn.domekisuzi.blog.repository.SubtaskRepository;
@@ -10,9 +12,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -24,13 +29,14 @@ public class DataInitializer {
 
     @Bean
     CommandLineRunner initData(
+            GoalRepository goalRepository,
             ModuleRepository moduleRepository,
             TaskRepository taskRepository,
             SubtaskRepository subtaskRepository
     ) {
         return args -> {
             // 如果已有数据，跳过初始化
-            if (moduleRepository.count() > 0) {
+            if (moduleRepository.count() > 0 && goalRepository.count() > 0) {
                 System.out.println("✅ 数据库已有数据，跳过初始化");
                 return;
             }
@@ -148,13 +154,79 @@ public class DataInitializer {
             taskRepository.saveAll(tasks);
             subtaskRepository.saveAll(subtasks);
 
-            System.out.println("✅ 示例数据初始化完成! 创建了 " + modules.size() + " 个模块, " + tasks.size() + " 个任务, " + subtasks.size() + " 个子任务");
+            // ========== 创建目标（Goals） ==========
+            List<Goal> goals = new ArrayList<>();
+            
+            // 短期目标
+            Goal goal1 = new Goal();
+            goal1.setTitle("完成项目 MVP");
+            goal1.setDescription("开发并发布项目的最小可行产品");
+            goal1.setStartDate(LocalDate.of(2026, 3, 1));
+            goal1.setEndDate(LocalDate.of(2026, 4, 30));
+            goal1.setColor("#6366f1");
+            goal1.setProgress(45);
+            goal1.setType(Goal.GoalType.SHORT_TERM);
+            goals.add(goal1);
+            
+            // 中期目标
+            Goal goal2 = new Goal();
+            goal2.setTitle("学习 TypeScript 进阶");
+            goal2.setDescription("深入理解 TypeScript 的高级类型和泛型");
+            goal2.setStartDate(LocalDate.of(2026, 2, 15));
+            goal2.setEndDate(LocalDate.of(2026, 5, 15));
+            goal2.setColor("#22c55e");
+            goal2.setProgress(30);
+            goal2.setType(Goal.GoalType.MEDIUM_TERM);
+            goals.add(goal2);
+            
+            // 长期目标
+            Goal goal3 = new Goal();
+            goal3.setTitle("年度阅读计划");
+            goal3.setDescription("今年阅读 24 本书");
+            goal3.setStartDate(LocalDate.of(2026, 1, 1));
+            goal3.setEndDate(LocalDate.of(2026, 12, 31));
+            goal3.setColor("#f59e0b");
+            goal3.setProgress(20);
+            goal3.setType(Goal.GoalType.LONG_TERM);
+            goals.add(goal3);
+            
+            // 健身目标
+            Goal goal4 = new Goal();
+            goal4.setTitle("健身目标");
+            goal4.setDescription("减重 10kg，增肌塑形");
+            goal4.setStartDate(LocalDate.of(2026, 3, 15));
+            goal4.setEndDate(LocalDate.of(2026, 8, 31));
+            goal4.setColor("#ec4899");
+            goal4.setProgress(0);
+            goal4.setType(Goal.GoalType.MEDIUM_TERM);
+            goals.add(goal4);
+            
+            goalRepository.saveAll(goals);
+
+            // ========== 绑定任务到目标 ==========
+            // 获取所有任务
+            List<Task> allTasks = taskRepository.findAll();
+            
+            // 为 goal1 绑定任务（完成项目 MVP）
+            if (goals.size() > 0 && allTasks.size() > 0) {
+                Goal mvpGoal = goals.get(0);
+                Set<Task> mvpTasks = new HashSet<>();
+                // 绑定前 3 个任务到 MVP 目标
+                for (int i = 0; i < Math.min(3, allTasks.size()); i++) {
+                    mvpTasks.add(allTasks.get(i));
+                }
+                mvpGoal.setTasks(mvpTasks);
+                goalRepository.save(mvpGoal);
+            }
+
+            int goalCount = (int) goalRepository.count();
+            System.out.println("✅ 示例数据初始化完成！创建了 " + modules.size() + " 个模块，" + tasks.size() + " 个任务，" + subtasks.size() + " 个子任务，" + goalCount + " 个目标");
         };
     }
 
     private Module createModule(String name, String description, String color) {
         Module module = new Module();
-        module.setId(UUID.randomUUID().toString());
+        // 不手动设置ID，让JPA自动生成
         module.setName(name);
         module.setDescription(description);
         module.setColor(color);
@@ -163,7 +235,7 @@ public class DataInitializer {
 
     private Task createTask(String title, String description, Boolean completed, String priority, Module module, LocalDateTime createdAt) {
         Task task = new Task();
-        task.setId(UUID.randomUUID().toString());
+        // 不手动设置ID，让JPA自动生成
         task.setTitle(title);
         task.setDescription(description);
         task.setCompleted(completed);
@@ -175,7 +247,7 @@ public class DataInitializer {
 
     private Subtask createSubtask(String title, Boolean completed, Task task, LocalDateTime createdAt) {
         Subtask subtask = new Subtask();
-        subtask.setId(UUID.randomUUID().toString());
+        // 不手动设置ID，让JPA自动生成
         subtask.setTitle(title);
         subtask.setCompleted(completed);
         subtask.setTask(task);

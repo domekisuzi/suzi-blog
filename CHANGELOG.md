@@ -1,94 +1,27 @@
-# 📋 项目更新日志
+# 更新记录
+
+## 2026-03-24 Goal任务绑定功能
+
+### 后端
+- `Goal.java` - 添加`tasks`多对多关联
+- `Task.java` - 添加`goals`反向关联
+- `GoalDTO.java` - 新增`taskIds`、`taskCount`、`completedTaskCount`字段
+- `GoalService.java` - 新增`addTasksToGoal`、`removeTasksFromGoal`、`recalculateProgress`
+- `GoalServiceImpl.java` - 实现任务绑定与进度自动计算
+- `GoalController.java` - 新增API: `POST/DELETE /{id}/tasks`, `POST /{id}/recalculate`
+
+### 前端
+- `goalApi.ts` - 新增`addTasksToGoal`、`removeTasksFromGoal`、`recalculateProgress`
+- `TimelinePage.tsx` - 添加绑定任务按钮、对话框、任务列表显示
 
 ---
 
-## 2026.03.23
+## 2026-03-23 快速添加任务功能
 
-### UI 重构 (下午 - 续)
-```
-├── Task 页面重构
-│   ├── TaskPage.tsx: 搜索、筛选、排序、分页
-│   ├── TaskMain.tsx: 现代化卡片设计
-│   │   ├── 进度条显示完成率
-│   │   ├── 优先级标签(高/中/低)
-│   │   ├── 状态标签(已完成/进行中)
-│   │   └── 模块名显示
-│   └── 修复类型问题: TaskDetailVo 替代 Task
-├── Subtask 页面重构
-│   └── SubtaskPage.tsx: 列表式布局
-│       ├── 复选框切换完成状态
-│       ├── 搜索、筛选、排序功能
-│       ├── 分页支持
-│       └── 统计显示(已完成/进行中)
-└── API 修复
-    ├── updateSubtaskByEntity: 更新子任务
-    └── deleteSubtaskById: 删除子任务
-```
+### 前端
+- `QuickAddTaskDialog.tsx` - 新增快速添加任务对话框组件
+- `Layout.tsx` - 顶部添加快速添加按钮
+- `taskApi.ts` - 新增快速创建任务API
 
-### UI 重构 (下午)
-```
-├── 全新设计风格
-│   ├── 渐变背景: 紫色渐变主背景
-│   ├── 毛玻璃效果: 内容区域 backdrop-filter
-│   ├── 深色侧边栏: 半透明深色主题
-│   └── 卡片渐变: 多彩渐变模块卡片
-├── 重构组件
-│   ├── Header.tsx: 搜索栏、快速添加、通知、主题切换
-│   ├── Layout.tsx: 渐变背景 + 毛玻璃内容区
-│   ├── Sidebar.tsx: 深色主题、折叠菜单、快速添加
-│   ├── ModulePage.tsx: 搜索、排序、视图切换
-│   └── ModuleDetailCard.tsx: 渐变卡片、进度条
-├── 技术改进
-│   ├── 修复 MUI v6 Grid API 兼容问题
-│   ├── Module 模型添加 createdAt/taskNumber/completedRate
-│   └── 响应式布局适配
-└── 截图保存: new-ui-modules.png
-```
-
-### 初始配置 (上午)
-```
-├── 配置本地开发环境
-│   ├── 添加 localStorage 本地存储模式
-│   ├── 配置 MySQL 数据库连接 (密码: 000000)
-│   └── 创建数据初始化脚本
-├── 重构 API 层
-│   └── 统一 API 适配器，支持环境切换
-├── 新增数据模型
-│   ├── Goal (大目标) - 年度/月度/长期
-│   ├── Milestone (里程碑) - 关键节点
-│   └── Todo (日常待办) - 日/周任务
-├── 初始化你的目标数据
-│   ├── 日语学习、英语、健身、修考
-│   ├── 转职、阅读计划、LeetCode、当老板
-│   └── 里程碑：简历更新、投递、面试准备
-├── 修复编译错误
-│   ├── 修复 taskTypes.ts 类型导入问题
-│   ├── 修复 APIUtils.ts 适配器返回类型
-│   ├── 修复 moduleApi.ts API调用
-│   └── 修复 ModuleDetailCard.tsx 样式属性
-├── 修复 CSS 样式问题
-│   └── Sidebar.tsx: kebab-case → camelCase
-│       ├── 'flex-grow' → flexGrow
-│       ├── 'overflow-y' → overflowY
-│       ├── 'scroll-behavior' → scrollBehavior
-│       └── 'scrollbar-width' → scrollbarWidth
-└── 优化 ModuleDetailCard 样式
-    └── 设置固定宽度200px、高度140px
-```
-
----
-
-## 数据结构说明
-
-### 当前结构
-```
-Module (模块/分类) → Task (任务) → Subtask (子任务)
-```
-
-### 规划结构
-```
-Goal (大目标)          - 年度/月度/长期目标
-├── Milestone (里程碑)  - 关键节点
-└── Task (任务)        - 具体执行项
-
-Todo (日常待办)        - 日/周任务，独立存在
+### 后端
+- `TaskController.java` - 新增快速创建任务端点

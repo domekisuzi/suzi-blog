@@ -1,9 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import { Box } from '@mui/material'
+import QuickAddTaskDialog from '../components/QuickAddTaskDialog'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [quickAddOpen, setQuickAddOpen] = useState(false)
+
+    const handleQuickAddOpen = () => setQuickAddOpen(true)
+    const handleQuickAddClose = () => setQuickAddOpen(false)
+
     return (
         <Box sx={{
             display: 'flex',
@@ -11,7 +17,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         }}>
             {/* 侧边栏 */}
-            <Sidebar />
+            <Sidebar onQuickAdd={handleQuickAddOpen} />
 
             {/* 主内容区 */}
             <Box sx={{
@@ -23,7 +29,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 minHeight: '100vh',
             }}>
                 {/* 头部 */}
-                <Header />
+                <Header onQuickAdd={handleQuickAddOpen} />
 
                 {/* 内容区域 - 毛玻璃效果 */}
                 <Box sx={{
@@ -38,6 +44,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     {children}
                 </Box>
             </Box>
+
+            {/* 快速添加任务对话框 */}
+            <QuickAddTaskDialog 
+                open={quickAddOpen} 
+                onClose={handleQuickAddClose}
+            />
         </Box>
     )
 }
