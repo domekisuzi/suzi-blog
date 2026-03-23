@@ -1,18 +1,28 @@
- import { api } from "../../../shared/utils/APIUtils"
- 
-import { Module, ModuleDetailVo } from "../model/module"
-const BASE = '/modules'
-export async function fetchModuleDetails(): Promise<ModuleDetailVo[]> {
-    const res = await api.get(`${BASE}/vo`)
-    return res.data
-}
+/**
+ * Module API - 使用统一的 API 适配器
+ */
+import { apiAdapter } from '../../../shared/utils/APIUtils'
+import { Module } from '../model/module'
 
-export async function createModule(name:string) :Promise<Module>{
-  const res = await  api.post('/modules', { name });
+/** 获取所有模块 */
+export async function fetchModules(): Promise<Module[]> {
+  const res = await apiAdapter.module.getAll()
   return res.data
 }
-export async function fetchModules():Promise<Module[]>{
-  const res = await api.get('/modules')
-  return res.data 
+
+/** 创建模块 */
+export async function createModule(name: string, iconSVG?: string): Promise<Module> {
+  const res = await apiAdapter.module.create({ name, iconSVG })
+  return res.data
 }
 
+/** 更新模块 */
+export async function updateModule(id: string, updates: Partial<Module>): Promise<Module> {
+  const res = await apiAdapter.module.update(id, updates)
+  return res.data
+}
+
+/** 删除模块 */
+export async function deleteModule(id: string): Promise<void> {
+  await apiAdapter.module.delete(id)
+}

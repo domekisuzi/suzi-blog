@@ -33,5 +33,8 @@ export interface Module {
     id: string
     name: string
     iconSVG?: string
+    createdAt?: string
+    taskNumber?: number
+    completedRate?: number
 }
 // 分类（可选）

@@ -1,51 +1,117 @@
-//this card is used to show vo layer modue, contains all kind of statistics
-import React from 'react';
- 
-import {   Card, CardContent, Typography, TextField, Button, CircularProgress, SvgIcon, CardHeader, Box, Divider, LinearProgress } from '@mui/material';
-import { mockModuleDetailVo, ModuleDetailVo } from '../model/module';
-import { parseSvgToJson } from '../../../shared/utils/parseSvgToJson';
-import { renderSvgNode } from '../../../shared/utils/renderSvg';
+import React from 'react'
+import { Box, Typography, LinearProgress, IconButton } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
+import { Module } from '../model/module'
+
+interface ColorScheme {
+    bg: string
+    color: string
+}
 
 interface ModuleDetailProps {
-    module?:ModuleDetailVo 
-    sx?: React.CSSProperties
+    module: Module
+    colorScheme?: ColorScheme
 }
-const ModuleDetailCard = ({ module = mockModuleDetailVo, sx }: ModuleDetailProps) => {
 
-    const nodeJson  = module.iconSVG ?    parseSvgToJson( module.iconSVG) : null
-    if (nodeJson && nodeJson.attrs) {
-        if(!nodeJson.attrs.viewBox){
-            nodeJson.attrs.viewBox = '0 0 24 24'; // if viewBox is not set, provide a default
-        }
-    }
+const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme }) => {
+    const navigate = useNavigate()
+    const defaultColor = { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff' }
+    const colors = colorScheme || defaultColor
+
+    const taskNumber = module.taskNumber || 0
+    const completedRate = module.completedRate || 0
 
     return (
-        <Card variant='outlined' sx ={{ overflow:"visible" ,...sx}}  >
-          
-            <CardHeader  sx={{  display:"flex", flexDirection:"column",alignItems:"center",justifyContent:"center"}}
-                avatar={
-                    <Card  sx={{position: "relative",top:"-30px",backgroundColor:"#a7daff" ,width: '60px !important', height: '60px !important'}}>
-                        <SvgIcon  sx={{fill:"black" , width: '60px !important', height: '60px !important'}}  >
-                            {nodeJson && renderSvgNode(nodeJson)}
-                        </SvgIcon>
-                    </Card>
-                }
-            />
+        <Box
+            onClick={() => navigate(`/tasks?moduleId=${module.id}`)}
+            sx={{
+                position: 'relative',
+                borderRadius: '16px',
+                background: colors.bg,
+                padding: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                height: '180px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+                },
+            }}
+        >
+            {/* 操作按钮 */}
+            <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+                <IconButton 
+                    size="small" 
+                    onClick={(e) => { e.stopPropagation(); console.log('edit', module.id) }}
+                    sx={{ color: colors.color, opacity: 0.7, '&:hover': { opacity: 1 } }}
+                >
+                    <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton 
+                    size="small"
+                    onClick={(e) => { e.stopPropagation(); console.log('delete', module.id) }}
+                    sx={{ color: colors.color, opacity: 0.7, '&:hover': { opacity: 1 } }}
+                >
+                    <DeleteIcon fontSize="small" />
+                </IconButton>
+            </Box>
 
-            <CardContent>
-                <Typography variant="h6">{module.name}</Typography>
-                <Typography variant="body2">Created At: {module.createdAt}</Typography>
-                <Typography variant="body2">Tasks: {module.taskNumber}</Typography>
-                <Typography variant="body2">Subtasks: {module.subtaskNumber}</Typography>
-                <Typography variant="body2">Completed Tasks: {module.completedTaskNumber}</Typography>
-                <Typography variant="body2">Completed Subtasks: {module.completedSubtaskNumber}</Typography>
-                <Divider sx={{ my: 1 }} />
-                <LinearProgress  sx={{borderRadius:5, height:10, 
-                        backgroundColor: '#e0e0e0'}}  variant="determinate" value={parseFloat(module.completedRate)} />
-            </CardContent>
-        </Card>
+            {/* 标题区域 */}
+            <Box>
+                <Typography 
+                    variant="h6" 
+                    sx={{ 
+                        color: colors.color, 
+                        fontWeight: 700,
+                        fontSize: '1.1rem',
+                        mb: 1,
+                    }}
+                >
+                    {module.name}
+                </Typography>
+                <Typography 
+                    variant="body2" 
+                    sx={{ 
+                        color: colors.color, 
+                        opacity: 0.8,
+                        fontSize: '0.85rem',
+                    }}
+                >
+                    {taskNumber} 个任务
+                </Typography>
+            </Box>
+
+            {/* 进度区域 */}
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: colors.color, opacity: 0.9 }}>
+                        完成进度
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: colors.color, fontWeight: 600 }}>
+                        {completedRate}%
+                    </Typography>
+                </Box>
+                <LinearProgress 
+                    variant="determinate" 
+                    value={completedRate}
+                    sx={{
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: 'rgba(255,255,255,0.3)',
+                        '& .MuiLinearProgress-bar': {
+                            borderRadius: 3,
+                            backgroundColor: colors.color,
+                        },
+                    }}
+                />
+            </Box>
+        </Box>
     )
 }
 
-
-export default ModuleDetailCard;
+export default ModuleDetailCard

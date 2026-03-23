@@ -1,79 +1,89 @@
-import exp from "constants"
-import { api } from "../../../shared/utils/APIUtils"
-import { Subtask, Task, TaskDetailVo } from "../model/taskTypes"
+/**
+ * Task API - 使用统一的 API 适配器
+ * 自动根据环境切换本地存储或后端API
+ */
+import { apiAdapter } from '../../../shared/utils/APIUtils'
+import { Subtask, Task, TaskDetailVo } from '../model/taskTypes'
 
-
-const BASE = '/tasks'
 /** 获取所有任务（包含子任务） */
 export async function fetchTasks(): Promise<Task[]> {
-    const res = await api.get(`${BASE}`)
-    return res.data
+  const res = await apiAdapter.task.getAll()
+  return res.data
 }
 
-/** 创建任务（前端构造完整结构） */
-export async function createTask(task: Task): Promise<{ id: string }> {
-    const res = await api.post(`${BASE}`, task)
-    return res.data
+/** 创建任务 */
+export async function createTask(task: Partial<Task>): Promise<Task> {
+  const res = await apiAdapter.task.create(task)
+  return res.data
 }
 
-/** 更新任务字段（只传需要更新的字段） */
-export async function updateTask(id: string, updates: Partial<Task>) {
-    await api.put(`${BASE}/${id}`, updates)
+/** 更新任务 */
+export async function updateTask(id: string, updates: Partial<Task>): Promise<void> {
+  await apiAdapter.task.update(id, updates)
 }
 
 /** 删除任务 */
-export async function deleteTask(id: string) {
-    await api.delete(`${BASE}/${id}`)
+export async function deleteTask(id: string): Promise<void> {
+  await apiAdapter.task.delete(id)
 }
 
-// "/api/tasks/{taskId}/subtasks")
- export async function getSubtasks (taskId: string): Promise<Subtask>  {
-   const res = await api.get(`/tasks/${taskId}/subtasks`);
-   return res.data;
-};
+/** 获取任务详情视图 */
+export async function getAllTaskVos(): Promise<TaskDetailVo[]> {
+  const res = await apiAdapter.task.getVos()
+  return res.data
+}
 
-export async function createSubtask  (
+/** 获取子任务 */
+export async function getSubtasks(taskId: string): Promise<Subtask[]> {
+  const res = await apiAdapter.subtask.getByTaskId(taskId)
+  return res.data
+}
+
+/** 创建子任务 */
+export async function createSubtask(
   taskId: string,
   payload: Partial<Subtask>
-) : Promise<Subtask>  {
-    const res = await api.post(`/tasks/${taskId}/subtasks`, 
-    payload
-  );
+): Promise<Subtask> {
+  const res = await apiAdapter.subtask.create(taskId, payload)
+  return res.data
+}
 
-  return res.data;
-};
-
-export async function updateSubtask (
+/** 更新子任务 */
+export async function updateSubtask(
   taskId: string,
   subtaskId: string,
   payload: Partial<Subtask>
-)  : Promise<Subtask> {
-   const   res = await api.put(`/tasks/${taskId}/subtasks/${subtaskId}`, payload);
-   return res.data
-};
+): Promise<Subtask> {
+  const res = await apiAdapter.subtask.update(taskId, subtaskId, payload)
+  return res.data
+}
 
-export async function deleteSubtask  (
+/** 删除子任务 */
+export async function deleteSubtask(
   taskId: string,
   subtaskId: string
-): Promise<void>  {
-  await api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`);
-}; 
-
-export async function getAllSubtasks (): Promise<Subtask[]>  {
-   const res = await api.get(`/tasks/subtasks`);
-   return res.data;
-};
-
-export async function getAllTaskVos(): Promise<TaskDetailVo[]> {
-   const res = await api.get(`/tasks/vo`);
-   return res.data; 
+): Promise<void> {
+  await apiAdapter.subtask.delete(taskId, subtaskId)
 }
 
+/** 获取所有子任务 */
+export async function getAllSubtasks(): Promise<Subtask[]> {
+  const res = await apiAdapter.subtask.getAll()
+  return res.data
+}
+
+/** 根据ID删除子任务 */
 export async function deleteSubtaskById(subtaskId: string): Promise<void> {
-    await api.delete(`/tasks/subtasks/${subtaskId}`);
+  // 在本地存储模式下，需要遍历找到对应的taskId
+  const allSubtasks = await getAllSubtasks()
+  const subtask = allSubtasks.find(s => s.id === subtaskId)
+  if (subtask) {
+    await deleteSubtask(subtask.taskId, subtaskId)
+  }
 }
 
+/** 更新子任务实体 */
 export async function updateSubtaskByEntity(dto: Subtask): Promise<Subtask> {
-    const res = await api.post(`/tasks/subtasks`, dto);
-    return res.data;
+  const res = await apiAdapter.subtask.update(dto.taskId, dto.id, dto)
+  return res.data
 }
