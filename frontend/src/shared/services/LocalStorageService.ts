@@ -309,51 +309,91 @@ export const subtaskApi = {
 // ============ 数据初始化 ============
 
 export const initializeData = (): void => {
-  if (localStorage.getItem(STORAGE_KEYS.GOALS)) return
+  if (localStorage.getItem(STORAGE_KEYS.MODULES)) return
 
-  // 初始大目标数据 - 基于你的实际计划
-  const initialGoals: Goal[] = [
-    { id: 'goal-1', title: '日语学习', description: '最少半年 每天3h左右', type: 'longterm', category: '学习', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-2', title: '英语达到日常交流水平', description: '目标分数110', type: 'longterm', category: '学习', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-3', title: '健身', description: '保持身体健康', type: 'longterm', category: '健康', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-4', title: '修考', description: '8月必须考一次', type: 'monthly', category: '学习', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-5', title: '转职', description: '11月之前找到新工作', type: 'yearly', category: '工作', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-6', title: '阅读计划', description: '一年计划看多少本，看哪些', type: 'yearly', category: '学习', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-7', title: 'LeetCode刷题', description: '4月7日之前完成', type: 'monthly', category: '学习', progress: 0, createdAt: new Date().toISOString() },
-    { id: 'goal-8', title: '当老板', description: '时机未到但是可以观察', type: 'longterm', category: '事业', progress: 0, createdAt: new Date().toISOString() },
-  ]
+  const now = new Date().toISOString()
 
-  // 初始里程碑
-  const initialMilestones: Milestone[] = [
-    { id: 'ms-1', goalId: 'goal-7', title: '完成100道题', completed: false, createdAt: new Date().toISOString() },
-    { id: 'ms-2', goalId: 'goal-7', title: '完成200道题', completed: false, createdAt: new Date().toISOString() },
-    { id: 'ms-3', goalId: 'goal-5', title: '更新简历', completed: false, createdAt: new Date().toISOString() },
-    { id: 'ms-4', goalId: 'goal-5', title: '投递简历', completed: false, createdAt: new Date().toISOString() },
-    { id: 'ms-5', goalId: 'goal-5', title: '面试准备', completed: false, createdAt: new Date().toISOString() },
-  ]
-
-  // 今日待办示例
-  const today = new Date().toISOString().split('T')[0]
-  const initialTodos: Todo[] = [
-    { id: 'todo-1', title: '日语学习1小时', type: 'daily', completed: false, dueDate: today, createdAt: new Date().toISOString() },
-    { id: 'todo-2', title: 'LeetCode 3题', type: 'daily', completed: false, dueDate: today, createdAt: new Date().toISOString() },
-    { id: 'todo-3', title: '健身30分钟', type: 'daily', completed: false, dueDate: today, createdAt: new Date().toISOString() },
-  ]
-
-  // 模块数据
+  // 模块数据 - 8个主要模块
   const initialModules: Module[] = [
-    { id: 'mod-1', name: '学习' },
-    { id: 'mod-2', name: '工作' },
-    { id: 'mod-3', name: '健康' },
-    { id: 'mod-4', name: '事业' },
+    { id: 'mod-1', name: '日语', description: '最少半年每天3h，做到不用太准备就可以学', color: '#ef4444' },
+    { id: 'mod-2', name: '英语', description: '目标110分，日常交流水平', color: '#3b82f6' },
+    { id: 'mod-3', name: '健身', description: '保持健康，规律锻炼', color: '#22c55e' },
+    { id: 'mod-4', name: '修考', description: '8月必须考一次', color: '#f59e0b' },
+    { id: 'mod-5', name: '工作', description: '11月之前找到新工作转职', color: '#8b5cf6' },
+    { id: 'mod-6', name: '看书', description: '一年计划看多少本，看哪些', color: '#ec4899' },
+    { id: 'mod-7', name: 'LeetCode', description: '1个月 4.7之前完成', color: '#06b6d4' },
+    { id: 'mod-8', name: '当老板', description: '时机未到但是可以观察', color: '#64748b' },
   ]
 
-  saveToStorage(STORAGE_KEYS.GOALS, initialGoals)
-  saveToStorage(STORAGE_KEYS.MILESTONES, initialMilestones)
-  saveToStorage(STORAGE_KEYS.TODOS, initialTodos)
+  // 任务数据
+  const initialTasks: Task[] = [
+    // 日语任务
+    { id: 'task-1', title: '日语学习计划', description: '每天3h学习，累计15h以上/周\n- 怎么积累想好\n- 不用太准备就可以学', completed: false, priority: 'high', moduleName: '日语', createdAt: now },
+    // 英语任务
+    { id: 'task-2', title: '英语提升计划', description: '目标：托福110分，日常交流水平', completed: false, priority: 'high', moduleName: '英语', createdAt: now },
+    // 健身任务
+    { id: 'task-3', title: '健身计划', description: '保持规律锻炼，健康生活', completed: false, priority: 'medium', moduleName: '健身', createdAt: now },
+    // 修考任务
+    { id: 'task-4', title: '修考准备', description: '8月必须考一次', completed: false, priority: 'high', moduleName: '修考', createdAt: now },
+    // 工作任务
+    { id: 'task-5', title: '转职计划', description: '11月之前找到新工作\n- 这个月先不看工作，4月1号再看', completed: false, priority: 'high', moduleName: '工作', createdAt: now },
+    // 看书任务
+    { id: 'task-6', title: '阅读计划', description: '一年计划看多少本，看哪些', completed: false, priority: 'medium', moduleName: '看书', createdAt: now },
+    // LeetCode任务
+    { id: 'task-7', title: 'LeetCode刷题', description: '1个月 4.7之前完成\n- 大量过', completed: false, priority: 'high', moduleName: 'LeetCode', createdAt: now },
+    // 当老板任务
+    { id: 'task-8', title: '创业观察', description: '时机未到但是可以观察', completed: false, priority: 'low', moduleName: '当老板', createdAt: now },
+    // 周常任务
+    { id: 'task-9', title: '周常任务', description: '每周固定任务\n- 日语累计15h以上\n- 力扣大量过\n- 计划软件完成\n- 月初进行月计划\n- 套磁怎么办\n- 专业化\n- 考虑下衣服', completed: false, priority: 'medium', moduleName: '日语', createdAt: now },
+  ]
+
+  // 子任务数据
+  const initialSubtasks: Subtask[] = [
+    // 日语子任务
+    { id: 'sub-1', taskId: 'task-1', title: '制定学习方法', completed: false, createdAt: now },
+    { id: 'sub-2', taskId: 'task-1', title: '每周累计15h', completed: false, createdAt: now },
+    { id: 'sub-3', taskId: 'task-1', title: '日常会话练习', completed: false, createdAt: now },
+    // 英语子任务
+    { id: 'sub-4', taskId: 'task-2', title: '背单词', completed: false, createdAt: now },
+    { id: 'sub-5', taskId: 'task-2', title: '听力练习', completed: false, createdAt: now },
+    { id: 'sub-6', taskId: 'task-2', title: '口语练习', completed: false, createdAt: now },
+    // 健身子任务
+    { id: 'sub-7', taskId: 'task-3', title: '每周运动3次', completed: false, createdAt: now },
+    { id: 'sub-8', taskId: 'task-3', title: '控制饮食', completed: false, createdAt: now },
+    // 修考子任务
+    { id: 'sub-9', taskId: 'task-4', title: '套磁怎么办', completed: false, createdAt: now },
+    { id: 'sub-10', taskId: 'task-4', title: '专业化准备', completed: false, createdAt: now },
+    { id: 'sub-11', taskId: 'task-4', title: '复习计划', completed: false, createdAt: now },
+    // 工作子任务
+    { id: 'sub-12', taskId: 'task-5', title: '简历更新', completed: false, createdAt: now },
+    { id: 'sub-13', taskId: 'task-5', title: '投递准备', completed: false, createdAt: now },
+    { id: 'sub-14', taskId: 'task-5', title: '面试准备', completed: false, createdAt: now },
+    { id: 'sub-15', taskId: 'task-5', title: '4月1日开始行动', completed: false, createdAt: now },
+    // 看书子任务
+    { id: 'sub-16', taskId: 'task-6', title: '确定书单', completed: false, createdAt: now },
+    { id: 'sub-17', taskId: 'task-6', title: '每月阅读目标', completed: false, createdAt: now },
+    // LeetCode子任务
+    { id: 'sub-18', taskId: 'task-7', title: '算法基础', completed: false, createdAt: now },
+    { id: 'sub-19', taskId: 'task-7', title: '数据结构', completed: false, createdAt: now },
+    { id: 'sub-20', taskId: 'task-7', title: '模拟面试题', completed: false, createdAt: now },
+    // 当老板子任务
+    { id: 'sub-21', taskId: 'task-8', title: '市场观察', completed: false, createdAt: now },
+    { id: 'sub-22', taskId: 'task-8', title: '人脉积累', completed: false, createdAt: now },
+    // 周常子任务
+    { id: 'sub-23', taskId: 'task-9', title: '日语累计15h以上', completed: false, createdAt: now },
+    { id: 'sub-24', taskId: 'task-9', title: '力扣大量过', completed: false, createdAt: now },
+    { id: 'sub-25', taskId: 'task-9', title: '计划软件完成', completed: false, createdAt: now },
+    { id: 'sub-26', taskId: 'task-9', title: '月初进行月计划', completed: false, createdAt: now },
+    { id: 'sub-27', taskId: 'task-9', title: '套磁', completed: false, createdAt: now },
+    { id: 'sub-28', taskId: 'task-9', title: '专业化', completed: false, createdAt: now },
+    { id: 'sub-29', taskId: 'task-9', title: '考虑下衣服', completed: false, createdAt: now },
+  ]
+
   saveToStorage(STORAGE_KEYS.MODULES, initialModules)
+  saveToStorage(STORAGE_KEYS.TASKS, initialTasks)
+  saveToStorage(STORAGE_KEYS.SUBTASKS, initialSubtasks)
   
-  console.log('✅ 本地数据初始化完成')
+  console.log('✅ 本地数据初始化完成: 8个模块, 9个任务, 29个子任务')
 }
 
 export const resetData = (): void => {

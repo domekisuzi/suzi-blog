@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, Grid, Chip, TextField, InputAdornment, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
+import { Box, Typography, Chip, TextField, InputAdornment, IconButton, Menu, MenuItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
 import ViewListIcon from '@mui/icons-material/ViewList'
@@ -10,13 +10,21 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import ModuleDetailCard from '../components/ModuleDetailCard'
 import { fetchModules } from '../api/moduleApi'
 import { Module } from '../model/module'
+import { getAllTaskVos } from '../../task/api/taskApi'
 
 type ViewMode = 'grid' | 'list'
-type SortMode = 'name' | 'date' | 'tasks'
+type SortMode = 'name' | 'date'
+
+interface ModuleWithProgress extends Module {
+    taskNumber: number
+    completedRate: number
+    totalSubtasks: number
+    completedSubtasks: number
+}
 
 const ModulePage: React.FC = () => {
-    const [moduleList, setModuleList] = useState<Module[]>([])
-    const [filteredModules, setFilteredModules] = useState<Module[]>([])
+    const [moduleList, setModuleList] = useState<ModuleWithProgress[]>([])
+    const [filteredModules, setFilteredModules] = useState<ModuleWithProgress[]>([])
     const [searchQuery, setSearchQuery] = useState('')
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
     const [sortMode, setSortMode] = useState<SortMode>('name')
@@ -24,14 +32,50 @@ const ModulePage: React.FC = () => {
     const [addDialogOpen, setAddDialogOpen] = useState(false)
     const [newModuleName, setNewModuleName] = useState('')
 
-    useEffect(() => {
-        fetchModules().then((res: Module[]) => {
-            setModuleList(res)
-            setFilteredModules(res)
-            console.log(res, 'modules fetched successfully')
-        }).catch((e: Error) => {
-            console.error(e, 'modules fetch failed')
+    // 计算模块进度的函数
+    const calculateModuleProgress = (modules: Module[], taskVos: any[]): ModuleWithProgress[] => {
+        return modules.map(module => {
+            // 找到该模块下的所有任务
+            const moduleTasks = taskVos.filter((t: any) => t.moduleName === module.name)
+            
+            // 计算所有子任务
+            let totalSubtasks = 0
+            let completedSubtasks = 0
+            
+            moduleTasks.forEach((task: any) => {
+                if (task.subtasks && task.subtasks.length > 0) {
+                    totalSubtasks += task.subtasks.length
+                    completedSubtasks += task.subtasks.filter((s: any) => s.completed).length
+                }
+            })
+            
+            // 计算完成率
+            const completedRate = totalSubtasks > 0 
+                ? Math.round((completedSubtasks / totalSubtasks) * 100)
+                : 0
+            
+            return {
+                ...module,
+                taskNumber: moduleTasks.length,
+                completedRate,
+                totalSubtasks,
+                completedSubtasks,
+            }
         })
+    }
+
+    useEffect(() => {
+        // 并行获取模块和任务数据
+        Promise.all([fetchModules(), getAllTaskVos()])
+            .then(([modules, taskVos]) => {
+                const modulesWithProgress = calculateModuleProgress(modules, taskVos)
+                setModuleList(modulesWithProgress)
+                setFilteredModules(modulesWithProgress)
+                console.log(modulesWithProgress, 'modules with progress fetched successfully')
+            })
+            .catch((e: Error) => {
+                console.error(e, 'modules fetch failed')
+            })
     }, [])
 
     useEffect(() => {
@@ -64,11 +108,15 @@ const ModulePage: React.FC = () => {
 
     const handleAddModule = () => {
         if (newModuleName.trim()) {
-            const newModule: Module = {
+            const newModule: ModuleWithProgress = {
                 id: Date.now().toString(),
                 name: newModuleName,
                 iconSVG: '',
                 createdAt: new Date().toISOString(),
+                taskNumber: 0,
+                completedRate: 0,
+                totalSubtasks: 0,
+                completedSubtasks: 0,
             }
             setModuleList([...moduleList, newModule])
             setNewModuleName('')
@@ -152,12 +200,40 @@ const ModulePage: React.FC = () => {
                         anchorEl={sortAnchorEl}
                         open={Boolean(sortAnchorEl)}
                         onClose={handleSortClose}
+                        PaperProps={{
+                            sx: {
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                mt: 1,
+                                minWidth: 180,
+                            }
+                        }}
                     >
-                        <MenuItem onClick={() => handleSortSelect('name')}>
-                            <ListItemText>按名称排序</ListItemText>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('name')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'name' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'name' ? '#6366f1' : '#64748b' }}>
+                                🔤 按名称排序
+                            </ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={() => handleSortSelect('date')}>
-                            <ListItemText>按创建时间排序</ListItemText>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('date')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'date' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'date' ? '#6366f1' : '#64748b' }}>
+                                📅 按创建时间排序
+                            </ListItemText>
                         </MenuItem>
                     </Menu>
 
@@ -266,9 +342,28 @@ const ModulePage: React.FC = () => {
             )}
 
             {/* 添加模块对话框 */}
-            <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
-                <DialogTitle>添加新模块</DialogTitle>
-                <DialogContent>
+            <Dialog 
+                open={addDialogOpen} 
+                onClose={() => setAddDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    📁 添加新模块
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
                     <TextField
                         autoFocus
                         margin="dense"
@@ -277,12 +372,36 @@ const ModulePage: React.FC = () => {
                         variant="outlined"
                         value={newModuleName}
                         onChange={(e) => setNewModuleName(e.target.value)}
-                        sx={{ mt: 2 }}
+                        sx={{ 
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '12px',
+                            }
+                        }}
                     />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setAddDialogOpen(false)}>取消</Button>
-                    <Button onClick={handleAddModule} variant="contained">添加</Button>
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={() => setAddDialogOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
+                    </Button>
+                    <Button 
+                        onClick={handleAddModule} 
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        添加
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

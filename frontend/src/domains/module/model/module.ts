@@ -32,6 +32,8 @@ export const mockModuleDetailVo: ModuleDetailVo = {
 export interface Module {
     id: string
     name: string
+    description?: string
+    color?: string
     iconSVG?: string
     createdAt?: string
     taskNumber?: number

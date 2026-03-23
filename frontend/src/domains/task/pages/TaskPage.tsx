@@ -1,408 +1,708 @@
-import React, {useEffect, useMemo} from 'react'
+import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
-    Button,
-    Dialog,
-    List,
-    ListItem,
-    ListItemText,
-    DialogTitle,
-    DialogActions,
+    Box,
+    Typography,
+    Chip,
     TextField,
-    Typography, DialogContent, Box, MenuItem, Card, ListItemIcon, Divider, Chip, CardActionArea, IconButton,
-    Backdrop,
-    CircularProgress
-} from "@mui/material";
-import {  Task, TaskPriority, TaskPriorityValues,Subtask, TaskDetailVo} from "../model/taskTypes";
-import styles from  "./TaskPage.module.css"
-import {mockModules, mockTasks} from "../../../shared/utils/CrackData";
-import {fetchTasks, deleteTask, updateTask, getAllTaskVos} from '../api/taskApi';
-import {withUUID} from "../../../shared/utils/DataWrap";
-import TaskMain from "../components/TaskMain";
-import TaskDetailCard from '../components/TaskDetailCard';
-import { dateUtils } from '../../../shared/utils/DateUtil';
-import CreateSubTaskCard from '../components/CreateSubTaskCard';
-import CreateTaskCard from '../components/CreateTaskCard';
-import ModuleCard from  '../../module/components/ModuleCard';
-import MouduleListCard from '../../module/components/ModuleListCard';
-import { fetchModules } from '../../module/api/moduleApi';
-import { set } from 'date-fns';
-import { Module } from '../../module/model/module';
-import { useLoading } from '../../../context/LoadingContext';
-//  后续再设计是否会有页面方面的内容
-//  先防止module列表，改为其他格式吧
+    InputAdornment,
+    IconButton,
+    Menu,
+    MenuItem,
+    ListItemText,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    Pagination,
+} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import SortIcon from '@mui/icons-material/Sort'
+import AddIcon from '@mui/icons-material/Add'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import TaskMain from '../components/TaskMain'
+import TaskDetailCard from '../components/TaskDetailCard'
+import CreateTaskCard from '../components/CreateTaskCard'
+import CreateSubTaskCard from '../components/CreateSubTaskCard'
+import { fetchTasks, deleteTask, updateTask, getAllTaskVos } from '../api/taskApi'
+import { fetchModules } from '../../module/api/moduleApi'
+import { Task, TaskDetailVo, Subtask } from '../model/taskTypes'
+import { Module } from '../../module/model/module'
+import { useLoading } from '../../../context/LoadingContext'
 
+type SortMode = 'name' | 'date' | 'priority' | 'module'
+type FilterStatus = 'all' | 'pending' | 'completed'
+const ITEMS_PER_PAGE = 12
 
-const TaskPage: React.FC=() => {
- 
-    const {loading,setLoading} = useLoading()
-    const [createTaskOpen,setCreateTaskOpen] = React.useState(false) // 声明组件级别状态声明变量，去open是状态，setOpen是更新状态的函数， false是设置的初始值
-    const [detailTaskOpen,setDetailTaskOpen] = React.useState(false)
-     
-    const [createSubTaskOpen,setCreateSubTaskOpen] = React.useState(false) // this is used for creating sub task, it is not used now, but may be used in the future
-
-    const [selectedModuleId, setSelectedModuleId] = React.useState<string | undefined>(undefined);
-
-
+const TaskPage: React.FC = () => {
+    const { setLoading } = useLoading()
+    const [searchParams] = useSearchParams()
+    const moduleIdFromUrl = searchParams.get('moduleId')
+    const moduleNameFromUrl = searchParams.get('moduleName')
     
-
-    // used  for detail task
-    const [nowDetailTask,setNowDetailTask] = React.useState< Task| null>(null)
-    const [nowDetailTaskVo,setNowDetailTaskVo] = React.useState<TaskDetailVo | null>(null)
-    const [taskList,setTaskList] = React.useState <Task[]|null>(null)
-    const [detailTaskVoList,setDetailTaskVoList] = React.useState<TaskDetailVo[] | null>(null)
-    const [moduleList,setModuleList] = React.useState <Module[]|null>(null)
+    // 数据状态
+    const [detailTaskVoList, setDetailTaskVoList] = useState<TaskDetailVo[]>([])
+    const [moduleList, setModuleList] = useState<Module[]>([])
+    const [filteredTasks, setFilteredTasks] = useState<TaskDetailVo[]>([])
     
-    const [editTaskOpen,setEditTaskOpen] = React.useState(false)
+    // UI状态
+    const [searchQuery, setSearchQuery] = useState('')
+    const [sortMode, setSortMode] = useState<SortMode>('date')
+    const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null)
+    const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
+    const [filterModule, setFilterModule] = useState<string>(moduleIdFromUrl || 'all')
+    const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    
+    // 对话框状态
+    const [createTaskOpen, setCreateTaskOpen] = useState(false)
+    const [detailTaskOpen, setDetailTaskOpen] = useState(false)
+    const [editTaskOpen, setEditTaskOpen] = useState(false)
+    const [createSubTaskOpen, setCreateSubTaskOpen] = useState(false)
+    const [nowDetailTask, setNowDetailTask] = useState<Task | null>(null)
 
+    // 加载数据
+    useEffect(() => {
+        refreshData()
+    }, [])
 
-    const [createModuleOpen,setCreateModuleOpen]  = React.useState(false)
-
-
-    const handleCreateModuleOpen =  ()=>{
-        setCreateModuleOpen(true)
-    }
-    const handleCreateModuleClose = () =>{
-        setCreateModuleOpen(false)
-    }
-    const handleCreateSubTaskOpen = (task:Task) => {
-        setNowDetailTask(task)
-         
-        setCreateSubTaskOpen(true);
-    }
-    const handleCreateSubTaskClose = () => {
-        setCreateSubTaskOpen(false);
-    };
-    const handleCreateTaskOpen = () => {
-        setCreateTaskOpen(true);
-    };
-
-    const handleCreateTaskClose = () => {
-        setCreateTaskOpen(false);
-    };
-    const handleEditTaskOpen = () => {
-        setCreateTaskOpen(true);
-    };
-
-    const handleEditTaskClose = () => {
-        setEditTaskOpen(false);
-    };
-
-    const handleDetailTaskOpen = (task:Task) => {
-        setNowDetailTask(task)
-        if(task ) {
-            setDetailTaskOpen(true) // if task is not exist, we can not open the detail dialog,though it would't hapenn in normal time
+    // 当URL参数变化时更新筛选
+    useEffect(() => {
+        if (moduleIdFromUrl) {
+            setFilterModule(moduleIdFromUrl)
         }
-        else{
-            setDetailTaskOpen(false)
-            alert("unexpected error happen ! ")
+    }, [moduleIdFromUrl])
+
+    // 筛选和排序
+    useEffect(() => {
+        let filtered = [...detailTaskVoList]
+
+        // 模块筛选 - 根据模块名称筛选
+        if (filterModule !== 'all') {
+            // 找到对应的模块名称
+            const selectedModule = moduleList.find(m => m.id === filterModule)
+            if (selectedModule) {
+                filtered = filtered.filter(t => t.moduleName === selectedModule.name)
+            }
         }
-    };
 
-    const handleDetailTaskClose = () => {
-        setDetailTaskOpen(false);
-    };
+        // 搜索筛选
+        if (searchQuery) {
+            filtered = filtered.filter(t => 
+                t.title.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        }
 
-    const handleEditTask =  (task:Task) =>{
-        setNowDetailTask(task)
+        // 状态筛选
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(t => {
+                const isCompleted = t.completedRate === '100%'
+                return filterStatus === 'completed' ? isCompleted : !isCompleted
+            })
+        }
+
+        // 排序
+        filtered.sort((a, b) => {
+            if (sortMode === 'name') return a.title.localeCompare(b.title)
+            if (sortMode === 'date') return (b.createdAt || '').localeCompare(a.createdAt || '')
+            if (sortMode === 'priority') {
+                const priorityOrder = { high: 3, medium: 2, low: 1 }
+                return (priorityOrder[b.priority || 'low'] || 0) - (priorityOrder[a.priority || 'low'] || 0)
+            }
+            return 0
+        })
+
+        setFilteredTasks(filtered)
+        setCurrentPage(1) // 重置页码
+    }, [searchQuery, filterStatus, filterModule, sortMode, detailTaskVoList, moduleList])
+
+    const refreshData = () => {
+        fetchModules().then(setModuleList).catch(console.error)
+        getAllTaskVos().then(setDetailTaskVoList).catch(console.error)
+    }
+
+    // 分页计算
+    const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE)
+    const paginatedTasks = filteredTasks.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    )
+
+    // 事件处理
+    const handleSortClick = (event: React.MouseEvent<HTMLElement>) => setSortAnchorEl(event.currentTarget)
+    const handleSortClose = () => setSortAnchorEl(null)
+    const handleSortSelect = (mode: SortMode) => { setSortMode(mode); handleSortClose() }
+
+    const handleFilterClick = (event: React.MouseEvent<HTMLElement>) => setFilterAnchorEl(event.currentTarget)
+    const handleFilterClose = () => setFilterAnchorEl(null)
+
+    const handleDeleteTask = (task: TaskDetailVo) => {
+        if (window.confirm('确定要删除这个任务吗？')) {
+            setLoading(true)
+            deleteTask(task.id).then(() => {
+                refreshData()
+            }).finally(() => setLoading(false))
+        }
+    }
+
+    const handleEditTask = (task: TaskDetailVo) => {
+        const fullTask: Task = {
+            ...task,
+            subtasks: task.subtasks || [],
+        }
+        setNowDetailTask(fullTask)
         setEditTaskOpen(true)
     }
 
-    const handleDeleteTask = (task:Task) =>{
-    
-        if (window.confirm("Are you sure you want to delete this task?")) {
+    const handleDetailTaskOpen = (task: TaskDetailVo) => {
+        const fullTask: Task = {
+            ...task,
+            subtasks: task.subtasks || [],
+        }
+        setNowDetailTask(fullTask)
+        setDetailTaskOpen(true)
+    }
+
+    const handleCreateSubTaskOpen = (task: TaskDetailVo) => {
+        const fullTask: Task = {
+            ...task,
+            subtasks: task.subtasks || [],
+        }
+        setNowDetailTask(fullTask)
+        setCreateSubTaskOpen(true)
+    }
+
+    const handleEditTaskSubmit = () => {
+        if (nowDetailTask) {
             setLoading(true)
-            deleteTask(task.id).then(
-                ()=>{
-                    freshTaskVoList()
-                    freshTasksList()
-                    setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
-                }
-            ).finally(()=>{
-                setLoading(false)
-            })
-        }
-        setTaskList(pre => pre ?  pre.filter(t =>t.id !== task.id ):[])
-    }
-
- 
-    const handleCreateModuleSubmit = (module: Module ) => {
-        
-        handleCreateModuleClose()
-        setModuleList(pre => pre ? [...pre, module] : [module])
-     }
-    const handleCreateTaskSubmit = (task:Task ) =>{
-        
-        handleCreateTaskClose()
-        setTaskList(pre => pre ? [...pre, task] : [task])
-        freshTaskVoList()
-        freshTasksList()
-    }
-
-    const handleEditTaskSubmit = ()=>{
-        setLoading(true)
-        if(nowDetailTask) {
             updateTask(nowDetailTask.id, nowDetailTask).then(() => {
-                console.log("update success!",nowDetailTask)
-                setTaskList(pre =>
-                pre
-                    ? pre.map(task =>
-                        task.id === nowDetailTask?.id
-                        ? { ...nowDetailTask } // 保证新引用
-                        : task
-                    )
-                    : []
-                )
-                //TODO('create the update success animation to alert user')
-                freshTasksList()
-                freshTaskVoList()//works ! 
-                setLoading(false)
+                refreshData()
                 setEditTaskOpen(false)
-            }).catch(error => {
-                console.log("update failed", error)
-                setEditTaskOpen(false)
-                setLoading(false)
-            })
-        }
-        else{
-            console.log("update failed, item does not exist")
-            setEditTaskOpen(false)
+            }).finally(() => setLoading(false))
         }
     }
 
-    const handleCreateSubTaskSubmit = (subtask:  Partial<Subtask> )=>{
-        handleCreateSubTaskClose()
-        //TODO add fresh logic 
-        subtask.id = subtask.id ? subtask.id : 'd3b6eb33-f38a-4f83-b618-f17483b1e152' // if the id is not exist, set it to empty string 
-        setNowDetailTask(pre => {
-            if(pre) {
-                 const res =  {
-                    ...pre,
-                    subtasks: [...(pre.subtasks || []), subtask as Subtask] // can resistant this because the card do not to show something
-                }
-                console.log("测试下创建",res)
-                setTaskList(pre => pre ? pre.map(task => task.id === nowDetailTask?.id ? res : task) : [])
-                freshTaskVoList()//it works ! 
-                return res
-            }
-            return pre
-        }) 
-       
-       
+    const handleCreateTaskSubmit = (task: Task) => {
+        setCreateTaskOpen(false)
+        refreshData()
     }
 
-    const freshModuleList = () =>{
-        fetchModules().then(
-            (res:Module[]) =>{
-                console.log(res)
-                setModuleList(res ? res:null)
-            }
-        ).catch(error=>console.error("获取module失败",error ))
+    const handleCreateSubTaskSubmit = (subtask: Partial<Subtask>) => {
+        setCreateSubTaskOpen(false)
+        refreshData()
     }
 
-    const freshTasksList = () => {
-        fetchTasks().then(
-            (res) => {
-                console.log(res)
-                setTaskList(res)
-            }
-        ).catch(
-            (error) => {
-                console.error("获取任务失败", error)
-            }
-        )
-    }
-    const freshTaskVoList = () => {
-        getAllTaskVos().then(
-            (res) => {
-                console.log("测试下taskVo",res)
-                setDetailTaskVoList(res)
-            }
-        ).catch(
-            (error) => {
-                console.error("获取任务视图失败", error)
-            }
-        )
+    // 优先级颜色
+    const getPriorityColor = (priority?: number) => {
+        switch (priority) {
+            case 3: return '#ef4444' // 高 - 红色
+            case 2: return '#f59e0b' // 中 - 橙色
+            case 1: return '#22c55e' // 低 - 绿色
+            default: return '#64748b'
+        }
     }
 
-    useEffect(()=>{
-        freshTasksList()
-        freshModuleList()
-        freshTaskVoList()
-        console.log("init task page success!")
-    },[])
-
-    return(
-    <div className={styles.container}>
-        {/* <Backdrop open={loading} sx={{ zIndex: 9999 }}>
-            <CircularProgress color="inherit" />
-        </Backdrop> */}
-        this is TaskPage
-        <h1>
-            Work Plan
-        </h1>
-        <div className={styles.header}>
-            <span className={styles.headerItem}>
-                 Manage your tasks and projects efficiently
-            </span>
-            <Button variant='contained' onClick={handleCreateModuleOpen}>new Module </Button>
-            <Button   variant= "contained" onClick={handleCreateTaskOpen}> New Task</Button>
-
-
-            <Dialog open={createModuleOpen}
-                onClose={handleCreateModuleClose}
+    return (
+        <Box>
+            {/* 页面标题 */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
+                        任务管理
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
+                        共 {filteredTasks.length} 个任务
+                    </Typography>
+                </Box>
+                <IconButton 
+                    onClick={() => setCreateTaskOpen(true)}
+                    sx={{ 
+                        backgroundColor: '#6366f1', 
+                        color: 'white',
+                        '&:hover': { backgroundColor: '#4f46e5' },
+                    }}
                 >
-                    <DialogTitle>
-                        {"创建模块"}
-                    </DialogTitle>
-                    <DialogContent>
-                        <ModuleCard onEditing={false} onSubmit={handleCreateModuleSubmit}/>
-                    </DialogContent>
+                    <AddIcon />
+                </IconButton>
+            </Box>
 
-                    <DialogActions>
-                        <Button type="submit" form="createModuleForm">
-                            提交
-                        </Button>
-                        <Button onClick={handleCreateModuleClose} autoFocus>
-                            关闭
-                        </Button>
-                    </DialogActions>
-            </Dialog>
+            {/* 搜索和工具栏 */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+                <TextField
+                    placeholder="搜索任务..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    size="small"
+                    sx={{ 
+                        minWidth: 300,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            backgroundColor: '#f8fafc',
+                        }
+                    }}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon sx={{ color: '#94a3b8' }} />
+                            </InputAdornment>
+                        ),
+                    }}
+                />
 
-            <Dialog open={createTaskOpen}
-            onClose={handleCreateTaskClose}
+                <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+                    {/* 筛选按钮 */}
+                    <IconButton 
+                        onClick={handleFilterClick}
+                        sx={{ 
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': { backgroundColor: '#e2e8f0' },
+                        }}
+                    >
+                        <FilterListIcon />
+                    </IconButton>
+                    <Menu
+                        anchorEl={filterAnchorEl}
+                        open={Boolean(filterAnchorEl)}
+                        onClose={handleFilterClose}
+                        PaperProps={{
+                            sx: {
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                mt: 1,
+                                minWidth: 200,
+                            }
+                        }}
+                    >
+                        <Box sx={{ px: 2, py: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                                📊 状态筛选
+                            </Typography>
+                        </Box>
+                        <MenuItem 
+                            onClick={() => { setFilterStatus('all'); handleFilterClose() }}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: filterStatus === 'all' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: filterStatus === 'all' ? '#6366f1' : '#64748b' }}>
+                                📋 全部
+                            </ListItemText>
+                        </MenuItem>
+                        <MenuItem 
+                            onClick={() => { setFilterStatus('pending'); handleFilterClose() }}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: filterStatus === 'pending' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: filterStatus === 'pending' ? '#6366f1' : '#64748b' }}>
+                                🔄 进行中
+                            </ListItemText>
+                        </MenuItem>
+                        <MenuItem 
+                            onClick={() => { setFilterStatus('completed'); handleFilterClose() }}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: filterStatus === 'completed' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: filterStatus === 'completed' ? '#6366f1' : '#64748b' }}>
+                                ✅ 已完成
+                            </ListItemText>
+                        </MenuItem>
+                        <Divider sx={{ my: 1 }} />
+                        <Box sx={{ px: 2, py: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                                📁 模块筛选
+                            </Typography>
+                        </Box>
+                        <MenuItem 
+                            onClick={() => { setFilterModule('all'); handleFilterClose() }}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: filterModule === 'all' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: filterModule === 'all' ? '#6366f1' : '#64748b' }}>
+                                📂 全部模块
+                            </ListItemText>
+                        </MenuItem>
+                        {moduleList.map(m => (
+                            <MenuItem 
+                                key={m.id} 
+                                onClick={() => { setFilterModule(m.id); handleFilterClose() }}
+                                sx={{ 
+                                    borderRadius: '8px', 
+                                    mx: 1, 
+                                    my: 0.5,
+                                    backgroundColor: filterModule === m.id ? '#f1f5f9' : 'transparent',
+                                }}
+                            >
+                                <ListItemText sx={{ color: filterModule === m.id ? '#6366f1' : '#64748b' }}>
+                                    {m.name}
+                                </ListItemText>
+                            </MenuItem>
+                        ))}
+                    </Menu>
+
+                    {/* 排序按钮 */}
+                    <IconButton 
+                        onClick={handleSortClick}
+                        sx={{ 
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': { backgroundColor: '#e2e8f0' },
+                        }}
+                    >
+                        <SortIcon />
+                    </IconButton>
+                    <Menu
+                        anchorEl={sortAnchorEl}
+                        open={Boolean(sortAnchorEl)}
+                        onClose={handleSortClose}
+                        PaperProps={{
+                            sx: {
+                                borderRadius: '12px',
+                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                mt: 1,
+                                minWidth: 180,
+                            }
+                        }}
+                    >
+                        <MenuItem 
+                            onClick={() => handleSortSelect('date')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'date' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'date' ? '#6366f1' : '#64748b' }}>
+                                📅 按创建时间排序
+                            </ListItemText>
+                        </MenuItem>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('name')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'name' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'name' ? '#6366f1' : '#64748b' }}>
+                                🔤 按名称排序
+                            </ListItemText>
+                        </MenuItem>
+                        <MenuItem 
+                            onClick={() => handleSortSelect('priority')}
+                            sx={{ 
+                                borderRadius: '8px', 
+                                mx: 1, 
+                                my: 0.5,
+                                backgroundColor: sortMode === 'priority' ? '#f1f5f9' : 'transparent',
+                            }}
+                        >
+                            <ListItemText sx={{ color: sortMode === 'priority' ? '#6366f1' : '#64748b' }}>
+                                ⚡ 按优先级排序
+                            </ListItemText>
+                        </MenuItem>
+                    </Menu>
+                </Box>
+            </Box>
+
+            {/* 快速筛选标签 */}
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                <Chip 
+                    label="全部" 
+                    clickable 
+                    onClick={() => setFilterStatus('all')}
+                    sx={{ 
+                        borderRadius: '8px',
+                        backgroundColor: filterStatus === 'all' ? '#6366f1' : '#f1f5f9',
+                        color: filterStatus === 'all' ? 'white' : '#64748b',
+                    }} 
+                />
+                <Chip 
+                    label="进行中" 
+                    clickable 
+                    onClick={() => setFilterStatus('pending')}
+                    sx={{ 
+                        borderRadius: '8px',
+                        backgroundColor: filterStatus === 'pending' ? '#6366f1' : '#f1f5f9',
+                        color: filterStatus === 'pending' ? 'white' : '#64748b',
+                    }} 
+                />
+                <Chip 
+                    label="已完成" 
+                    clickable 
+                    onClick={() => setFilterStatus('completed')}
+                    sx={{ 
+                        borderRadius: '8px',
+                        backgroundColor: filterStatus === 'completed' ? '#6366f1' : '#f1f5f9',
+                        color: filterStatus === 'completed' ? 'white' : '#64748b',
+                    }} 
+                />
+            </Box>
+
+            {/* 任务网格 */}
+            <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                gap: 2,
+                mb: 3 
+            }}>
+                {paginatedTasks.map((task) => (
+                    <TaskMain
+                        key={task.id}
+                        task={task}
+                        onClick={() => handleDetailTaskOpen(task)}
+                        onDelete={handleDeleteTask}
+                        onEdit={handleEditTask}
+                        addSubTaskClick={() => handleCreateSubTaskOpen(task)}
+                    />
+                ))}
+            </Box>
+
+            {/* 空状态 */}
+            {paginatedTasks.length === 0 && (
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h6" sx={{ color: '#94a3b8' }}>
+                        暂无任务
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#cbd5e1', mt: 1 }}>
+                        点击右上角的 + 按钮创建新任务
+                    </Typography>
+                </Box>
+            )}
+
+            {/* 分页 */}
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={(_, page) => setCurrentPage(page)}
+                        color="primary"
+                        sx={{
+                            '& .MuiPaginationItem-root': {
+                                borderRadius: '8px',
+                            },
+                        }}
+                    />
+                </Box>
+            )}
+
+            {/* 创建任务对话框 */}
+            <Dialog 
+                open={createTaskOpen} 
+                onClose={() => setCreateTaskOpen(false)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
             >
-                <DialogTitle>
-                    {"创建任务"}
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    ✨ 创建任务
                 </DialogTitle>
-                <DialogContent>
-                    <CreateTaskCard  onSubmit={handleCreateTaskSubmit}/>
-            
+                <DialogContent sx={{ py: 3 }}>
+                    <CreateTaskCard onSubmit={handleCreateTaskSubmit} />
                 </DialogContent>
-
-                <DialogActions>
-                    <Button type="submit" form="createTaskForm">
-                        提交
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={() => setCreateTaskOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
                     </Button>
-                    <Button onClick={handleCreateTaskClose} autoFocus>
-                        关闭
+                    <Button 
+                        type="submit" 
+                        form="createTaskForm" 
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        创建
                     </Button>
                 </DialogActions>
-
-            </Dialog>
-        </div>
-
-        <div className={styles.taskSection}>
-            {/* <div className={styles.module}>
-                    <MouduleListCard  modules={moduleList}  onSelect={handleModuleSelect}  selectedModuleId={selectedModuleId}/>
-            </div> */}
-            <div className={styles.tasks}>
-                <List className={styles.taskRoot}>
-
-                    {
-                        detailTaskVoList?.map((task)=> ( 
-                            <ListItem key={task.id}  sx={
-                                 { padding:0,alienItems:'stretch'}
-                            } >
-                                <TaskMain sx={{margin:1,width:'400px'}}
-                                            task={task}
-                                            onClick={() => handleDetailTaskOpen(task)}
-                                            onDelete={handleDeleteTask}
-                                            onEdit={handleEditTask}
-                                            addSubTaskClick={() => handleCreateSubTaskOpen(task) }
-                                            />
-                            </ListItem>
-                                 
-                        )
-                    )
-                    }
-                </List>
-            </div>
-
-            {/*任务详情界面，需要一些*/}
-            <Dialog  open={detailTaskOpen} className={styles.taskDetail} onClose={handleDetailTaskClose}>
-                <DialogTitle>
-                    任务详情
-                </DialogTitle>
-                <DialogContent dividers>{
-                    nowDetailTask && (
-                            <TaskDetailCard task={ nowDetailTask} isEditing={false}   />
-                    )
-                }
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleDetailTaskClose} autoFocus>
-                        关闭
-                    </Button>
-                </DialogActions>
-            </Dialog >
-
-            {/* without setting  onClose, we can not close the dialog when losing focus */}
-            <Dialog  open={editTaskOpen} onClose={handleEditTaskClose}>
-                <DialogTitle >
-                    修改任务
-                </DialogTitle>
-                <DialogContent dividers>
-                    {  
-                    nowDetailTask && 
-                        <TaskDetailCard task={nowDetailTask } isEditing={true} onChange={setNowDetailTask }/>
-                    }
-
-                </DialogContent>
-                <DialogActions>
-
-                    <Button onClick={ handleEditTaskSubmit  } autoFocus>
-                        提交
-                    </Button>
-                    <Button onClick={handleEditTaskClose} autoFocus>
-                        关闭
-                    </Button>
-                </DialogActions>
-
             </Dialog>
 
-
-              <Dialog  open={detailTaskOpen} className={styles.taskDetail} onClose={handleDetailTaskClose}>
-                <DialogTitle>
-                    任务详情
-                </DialogTitle>
-                <DialogContent dividers>{
-                    nowDetailTask && (
-                            <TaskDetailCard task={nowDetailTask} isEditing={false}   />
-                    )
-                }
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleDetailTaskClose} autoFocus>
-                        关闭
-                    </Button>
-                </DialogActions>
-            </Dialog >
-
-           
-
-            <Dialog  open={createSubTaskOpen} onClose={handleCreateSubTaskClose}>
-                <DialogTitle >
-                    添加子任务
-                </DialogTitle>
-                <DialogContent dividers>
-                    {  
-                    nowDetailTask && 
-                        <CreateSubTaskCard   taskId={nowDetailTask.id}  onSubmit={handleCreateSubTaskSubmit}  />
+            {/* 任务详情对话框 */}
+            <Dialog 
+                open={detailTaskOpen} 
+                onClose={() => setDetailTaskOpen(false)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
                     }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    📋 任务详情
+                </DialogTitle>
+                <DialogContent dividers sx={{ py: 3 }}>
+                    {nowDetailTask && <TaskDetailCard task={nowDetailTask} isEditing={false} />}
                 </DialogContent>
-                <DialogActions>
-
-                   <Button type="submit" form="createSubTaskForm">
-                        提交
-                    </Button>
-                    <Button onClick={handleCreateSubTaskClose} autoFocus>
+                <DialogActions sx={{ px: 3, py: 2 }}>
+                    <Button 
+                        onClick={() => setDetailTaskOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
                         关闭
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
-    </div>
+
+            {/* 编辑任务对话框 */}
+            <Dialog 
+                open={editTaskOpen} 
+                onClose={() => setEditTaskOpen(false)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    ✏️ 编辑任务
+                </DialogTitle>
+                <DialogContent dividers sx={{ py: 3 }}>
+                    {nowDetailTask && (
+                        <TaskDetailCard task={nowDetailTask} isEditing={true} onChange={setNowDetailTask} />
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={() => setEditTaskOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
+                    </Button>
+                    <Button 
+                        onClick={handleEditTaskSubmit} 
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        保存
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* 创建子任务对话框 */}
+            <Dialog 
+                open={createSubTaskOpen} 
+                onClose={() => setCreateSubTaskOpen(false)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    ➕ 添加子任务
+                </DialogTitle>
+                <DialogContent dividers sx={{ py: 3 }}>
+                    {nowDetailTask && (
+                        <CreateSubTaskCard taskId={nowDetailTask.id} onSubmit={handleCreateSubTaskSubmit} />
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={() => setCreateSubTaskOpen(false)}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        form="createSubTaskForm" 
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        创建
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
     )
 }
+
+// Divider 组件
+const Divider: React.FC<{ sx?: object }> = ({ sx }) => (
+    <Box sx={{ height: 1, backgroundColor: '#e2e8f0', my: 1, ...sx }} />
+)
 
 export default TaskPage

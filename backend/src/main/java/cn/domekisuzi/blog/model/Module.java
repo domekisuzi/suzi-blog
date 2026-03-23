@@ -21,6 +21,10 @@ public class Module extends BaseEntity {
 
     private String name;
 
+    private String description;
+
+    private String color;
+
     @Column(name = "icon_svg")
     private String iconSVG;
 

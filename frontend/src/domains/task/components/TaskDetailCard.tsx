@@ -16,9 +16,10 @@ import {
  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import { Task, TaskDetailVo } from '../model/taskTypes'
+import { Task, TaskDetailVo, Subtask } from '../model/taskTypes'
 import { dateUtils } from '../../../shared/utils/DateUtil'
 import { useLoading } from '../../../context/LoadingContext'
+import { updateSubtask } from '../api/taskApi'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 
@@ -47,11 +48,25 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
             // onChange?.({ ...task, [field]: value })  // a new grammar named optional chaining,it avoids use the function  of null which causes error
     }
 
-    const handleSubTaskCompletedChange = (subtaskId: string, completed: boolean) => {
-        const updatedSubtasks = task.subtasks?.map(sub => 
-            sub.id === subtaskId ? { ...sub, completed } : sub
-        ) || []
-        onChange?.({ ...task, subtasks: updatedSubtasks })
+    const handleSubTaskCompletedChange = async (subtaskId: string, completed: boolean) => {
+        // 找到对应的子任务
+        const subtask = task.subtasks?.find(s => s.id === subtaskId)
+        if (!subtask) return
+
+        // 直接调用 API 保存子任务状态
+        setLoading(true)
+        try {
+            await updateSubtask(task.id, subtaskId, { completed })
+            // 更新本地状态
+            const updatedSubtasks = task.subtasks?.map(sub => 
+                sub.id === subtaskId ? { ...sub, completed } : sub
+            ) || []
+            onChange?.({ ...task, subtasks: updatedSubtasks })
+        } catch (error) {
+            console.error('Failed to update subtask:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     function setEditDueDate(value: string): void {

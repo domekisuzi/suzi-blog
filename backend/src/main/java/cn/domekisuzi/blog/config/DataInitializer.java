@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,40 +37,127 @@ public class DataInitializer {
 
             System.out.println("🔄 初始化示例数据...");
 
-            // 创建模块
-            Module workModule = createModule("工作", "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\" ry=\"2\"/><path d=\"M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\"/></svg>");
-            Module studyModule = createModule("学习", "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"/><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"/></svg>");
-            Module healthModule = createModule("健康", "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg>");
-
-            moduleRepository.saveAll(List.of(workModule, studyModule, healthModule));
-
-            // 创建任务
             LocalDateTime now = LocalDateTime.now();
+            List<Module> modules = new ArrayList<>();
+            List<Task> tasks = new ArrayList<>();
+            List<Subtask> subtasks = new ArrayList<>();
+
+            // ========== 创建模块 ==========
             
-            Task task1 = createTask("完成项目报告", "撰写Q2季度项目总结报告", false, "high", workModule, now);
-            Task task2 = createTask("学习 TypeScript", "完成TypeScript基础教程", false, "medium", studyModule, now);
-            Task task3 = createTask("每日锻炼", "完成30分钟有氧运动", true, "low", healthModule, now);
+            // 日语模块
+            Module japaneseModule = createModule("日语", "最少半年每天3h，做到不用太准备就可以学", "#ef4444");
+            modules.add(japaneseModule);
+            
+            // 英语模块
+            Module englishModule = createModule("英语", "目标110分，日常交流水平", "#3b82f6");
+            modules.add(englishModule);
+            
+            // 健身模块
+            Module fitnessModule = createModule("健身", "保持健康，规律锻炼", "#22c55e");
+            modules.add(fitnessModule);
+            
+            // 修考模块
+            Module examModule = createModule("修考", "8月必须考一次", "#f59e0b");
+            modules.add(examModule);
+            
+            // 工作模块
+            Module workModule = createModule("工作", "11月之前找到新工作转职", "#8b5cf6");
+            modules.add(workModule);
+            
+            // 看书模块
+            Module readingModule = createModule("看书", "一年计划看多少本，看哪些", "#ec4899");
+            modules.add(readingModule);
+            
+            // LeetCode模块
+            Module leetcodeModule = createModule("LeetCode", "1个月 4.7之前完成可否？", "#06b6d4");
+            modules.add(leetcodeModule);
+            
+            // 当老板模块
+            Module bossModule = createModule("当老板", "时机未到但是可以观察", "#64748b");
+            modules.add(bossModule);
 
-            taskRepository.saveAll(List.of(task1, task2, task3));
+            moduleRepository.saveAll(modules);
 
-            // 创建子任务
-            Subtask sub1 = createSubtask("收集数据", true, task1, now);
-            Subtask sub2 = createSubtask("编写草稿", false, task1, now);
-            Subtask sub3 = createSubtask("审核修改", false, task1, now);
-            Subtask sub4 = createSubtask("学习基础类型", true, task2, now);
-            Subtask sub5 = createSubtask("练习泛型", false, task2, now);
+            // ========== 创建任务 ==========
 
-            subtaskRepository.saveAll(List.of(sub1, sub2, sub3, sub4, sub5));
+            // 日语任务
+            Task japaneseTask = createTask("日语学习计划", "每天3h学习，累计15h以上/周\n- 怎么积累想好\n- 不用太准备就可以学", false, "high", japaneseModule, now);
+            tasks.add(japaneseTask);
+            subtasks.add(createSubtask("制定学习方法", false, japaneseTask, now));
+            subtasks.add(createSubtask("每周累计15h", false, japaneseTask, now));
+            subtasks.add(createSubtask("日常会话练习", false, japaneseTask, now));
 
-            System.out.println("✅ 示例数据初始化完成!");
+            // 英语任务
+            Task englishTask = createTask("英语提升计划", "目标：托福110分，日常交流水平", false, "high", englishModule, now);
+            tasks.add(englishTask);
+            subtasks.add(createSubtask("背单词", false, englishTask, now));
+            subtasks.add(createSubtask("听力练习", false, englishTask, now));
+            subtasks.add(createSubtask("口语练习", false, englishTask, now));
+
+            // 健身任务
+            Task fitnessTask = createTask("健身计划", "保持规律锻炼，健康生活", false, "medium", fitnessModule, now);
+            tasks.add(fitnessTask);
+            subtasks.add(createSubtask("每周运动3次", false, fitnessTask, now));
+            subtasks.add(createSubtask("控制饮食", false, fitnessTask, now));
+
+            // 修考任务
+            Task examTask = createTask("修考准备", "8月必须考一次", false, "high", examModule, now);
+            tasks.add(examTask);
+            subtasks.add(createSubtask("套磁怎么办", false, examTask, now));
+            subtasks.add(createSubtask("专业化准备", false, examTask, now));
+            subtasks.add(createSubtask("复习计划", false, examTask, now));
+
+            // 工作任务
+            Task workTask = createTask("转职计划", "11月之前找到新工作\n- 这个月先不看工作，4月1号再看", false, "high", workModule, now);
+            tasks.add(workTask);
+            subtasks.add(createSubtask("简历更新", false, workTask, now));
+            subtasks.add(createSubtask("投递准备", false, workTask, now));
+            subtasks.add(createSubtask("面试准备", false, workTask, now));
+            subtasks.add(createSubtask("4月1日开始行动", false, workTask, now));
+
+            // 看书任务
+            Task readingTask = createTask("阅读计划", "一年计划看多少本，看哪些", false, "medium", readingModule, now);
+            tasks.add(readingTask);
+            subtasks.add(createSubtask("确定书单", false, readingTask, now));
+            subtasks.add(createSubtask("每月阅读目标", false, readingTask, now));
+
+            // LeetCode任务
+            Task leetcodeTask = createTask("LeetCode刷题", "1个月 4.7之前完成\n- 大量过", false, "high", leetcodeModule, now);
+            tasks.add(leetcodeTask);
+            subtasks.add(createSubtask("算法基础", false, leetcodeTask, now));
+            subtasks.add(createSubtask("数据结构", false, leetcodeTask, now));
+            subtasks.add(createSubtask("模拟面试题", false, leetcodeTask, now));
+
+            // 当老板任务
+            Task bossTask = createTask("创业观察", "时机未到但是可以观察", false, "low", bossModule, now);
+            tasks.add(bossTask);
+            subtasks.add(createSubtask("市场观察", false, bossTask, now));
+            subtasks.add(createSubtask("人脉积累", false, bossTask, now));
+
+            // ========== 周常任务 ==========
+            Task weeklyTask = createTask("周常任务", "每周固定任务\n- 日语累计15h以上\n- 力扣大量过\n- 计划软件完成\n- 月初进行月计划\n- 套磁怎么办\n- 专业化\n- 考虑下衣服", false, "medium", japaneseModule, now);
+            tasks.add(weeklyTask);
+            subtasks.add(createSubtask("日语累计15h以上", false, weeklyTask, now));
+            subtasks.add(createSubtask("力扣大量过", false, weeklyTask, now));
+            subtasks.add(createSubtask("计划软件完成", false, weeklyTask, now));
+            subtasks.add(createSubtask("月初进行月计划", false, weeklyTask, now));
+            subtasks.add(createSubtask("套磁", false, weeklyTask, now));
+            subtasks.add(createSubtask("专业化", false, weeklyTask, now));
+            subtasks.add(createSubtask("考虑下衣服", false, weeklyTask, now));
+
+            taskRepository.saveAll(tasks);
+            subtaskRepository.saveAll(subtasks);
+
+            System.out.println("✅ 示例数据初始化完成! 创建了 " + modules.size() + " 个模块, " + tasks.size() + " 个任务, " + subtasks.size() + " 个子任务");
         };
     }
 
-    private Module createModule(String name, String iconSVG) {
+    private Module createModule(String name, String description, String color) {
         Module module = new Module();
         module.setId(UUID.randomUUID().toString());
         module.setName(name);
-        module.setIconSVG(iconSVG);
+        module.setDescription(description);
+        module.setColor(color);
         return module;
     }
 
