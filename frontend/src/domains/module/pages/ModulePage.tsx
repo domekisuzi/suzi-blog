@@ -139,18 +139,29 @@ const ModulePage: React.FC = () => {
     }
 
     const handleAddModule = async () => {
-        if (newModuleName.trim()) {
-            setLoading(true)
-            try {
-                await createModule(newModuleName)
-                setNewModuleName('')
-                setAddDialogOpen(false)
-                loadModules()
-            } catch (error) {
-                console.error('Failed to create module:', error)
-            } finally {
-                setLoading(false)
-            }
+        const trimmedName = newModuleName.trim()
+        if (!trimmedName) return
+
+        // 检查模块名称是否已存在
+        const isDuplicate = moduleList.some(m => m.name.toLowerCase() === trimmedName.toLowerCase())
+        if (isDuplicate) {
+            setSnackbar({ open: true, message: `模块 "${trimmedName}" 已存在`, severity: 'error' })
+            return
+        }
+
+        setLoading(true)
+        try {
+            await createModule(trimmedName)
+            setNewModuleName('')
+            setAddDialogOpen(false)
+            setSnackbar({ open: true, message: `模块 "${trimmedName}" 创建成功`, severity: 'success' })
+            loadModules()
+        } catch (error: any) {
+            console.error('Failed to create module:', error)
+            const errorMessage = error.response?.data?.message || '创建模块失败，请重试'
+            setSnackbar({ open: true, message: errorMessage, severity: 'error' })
+        } finally {
+            setLoading(false)
         }
     }
 

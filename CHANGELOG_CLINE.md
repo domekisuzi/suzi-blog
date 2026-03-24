@@ -25,3 +25,20 @@
 - [2026-03-24 16:21] SubtaskServiceImpl 修复 updateSubtask 方法使用 findById 替代 findByIdAndTaskId，避免返回多个结果
 - [2026-03-24 16:23] SubtaskServiceImpl 统一使用 SubtaskMapper.parseDateTime 解析日期，修复所有日期解析问题
 - [2026-03-24 16:45] TaskServiceImpl 修复 updateTask 方法，区分子任务新建和更新逻辑，避免子任务标题被清空
+- [2026-03-24 17:36] 数据导出导入 新增数据备份与恢复功能（Dashboard 页面添加导出/导入按钮）
+- [2026-03-24 18:02] 数据导入 修复模块名称重复导致的导入失败问题，添加 findAllByName 方法
+- [2026-03-24 19:27] 数据清理 手动合并 JSON 文件中重复的"日语"模块
+- [2026-03-24 19:28] ModuleServiceImpl 添加重复模块名称校验，防止创建同名模块
+- [2026-03-24 19:29] ModulePage 前端添加重复模块名称校验，创建前检查名称是否已存在
+- [2026-03-24 19:43] TaskMapper 修复 toEntity 方法使用 findAllByName 替代 findByName，避免重复模块名查询错误
+- [2026-03-24 19:44] TaskServiceImpl 添加重复任务标题校验（同一模块下不能重复）
+- [2026-03-24 19:44] TaskRepository 添加 findByTitle 方法支持任务标题查询
+- [2026-03-24 19:52] DataExportImportServiceImpl 修复子任务导入时的 detached entity 错误，手动创建新 Subtask 对象
+- [2026-03-24 20:02] DataExportImportServiceImpl 修复任务导入逻辑，避免使用 TaskMapper.toEntity 导致子任务带有旧 ID
+- [2026-03-24 20:14] Header 组件 将导入导出按钮从 Dashboard 移到右上角工具栏
+- [2026-03-24 20:14] Dashboard 页面 移除导入导出按钮，改为简单的欢迎页面
+- [2026-03-24 20:18] GoalServiceImpl 修复删除goal时外键约束错误，先清除任务关联再删除
+- [2026-03-24 20:19] TimelinePage 新增删除goal按钮，在选中目标卡片上显示删除图标
+- [2026-03-24 20:33] TaskMapper 修复日期解析，只保留日期部分（yyyy-MM-dd），去掉时间
+- [2026-03-24 20:39] SubtaskMapper 修复日期解析，添加对单毫秒位格式的支持（如 2026-03-13 15:00:00.0）
+- [2026-03-24 20:48] TaskMapper/TaskServiceImpl/DataExportImportServiceImpl 统一使用 TaskMapper.parseDateTime 方法解析日期，修复所有直接使用 LocalDateTime.parse 导致的日期解析错误

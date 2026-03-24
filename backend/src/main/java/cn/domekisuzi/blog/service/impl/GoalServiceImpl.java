@@ -70,9 +70,12 @@ public class GoalServiceImpl implements GoalService {
     
     @Override
     public void deleteGoal(String id) {
-        if (!goalRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Goal not found with id: " + id);
-        }
+        Goal goal = goalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Goal not found with id: " + id));
+        // 清除与任务的关联关系
+        goal.getTasks().clear();
+        goalRepository.save(goal);
+        // 删除目标
         goalRepository.deleteById(id);
     }
     

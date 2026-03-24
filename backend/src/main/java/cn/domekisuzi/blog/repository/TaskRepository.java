@@ -11,6 +11,7 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, String> {
     List<Task> findByModuleId(String moduleId);
     List<Task> findByCompleted(Boolean completed);
+    List<Task> findByTitle(String title);
 
   
 

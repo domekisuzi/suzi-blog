@@ -32,6 +32,12 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Override
     public ModuleDTO createModule(ModuleDTO moduleDTO) {
+        // 检查模块名称是否已存在
+        if (moduleDTO.getName() != null && !moduleDTO.getName().isEmpty()) {
+            moduleRepository.findByName(moduleDTO.getName()).ifPresent(existing -> {
+                throw new IllegalArgumentException("模块名称已存在: " + moduleDTO.getName());
+            });
+        }
         Module module = moduleMapper.toEntity(moduleDTO);
         Module saved = moduleRepository.save(module);
         return moduleMapper.toDTO(saved);

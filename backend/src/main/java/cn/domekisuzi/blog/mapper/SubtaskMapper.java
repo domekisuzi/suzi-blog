@@ -20,6 +20,9 @@ public class SubtaskMapper {
     // 支持多种日期格式
     private static final DateTimeFormatter[] DATE_FORMATTERS = {
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SS"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS"),
         DateTimeFormatter.ISO_LOCAL_DATE_TIME
     };

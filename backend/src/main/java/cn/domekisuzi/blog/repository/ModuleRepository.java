@@ -16,6 +16,8 @@ import java.util.Optional;
 @Repository
 public interface ModuleRepository extends JpaRepository<Module, String> {
     Optional<Module> findByName(String name);
+    
+    List<Module> findAllByName(String name);
 
     // 使用EntityGraph预加载tasks和subtasks，避免N+1查询
     @EntityGraph(attributePaths = {"tasks", "tasks.subtasks"})

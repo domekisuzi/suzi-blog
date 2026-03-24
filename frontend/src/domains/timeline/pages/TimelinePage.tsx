@@ -476,7 +476,7 @@ const TimelinePage: React.FC = () => {
                                 <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                                     {new Date(selectedGoal.startDate).toLocaleDateString()} - {new Date(selectedGoal.endDate).toLocaleDateString()}
                                 </Typography>
-                                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1, mt: 2, alignItems: 'center' }}>
                                     <Chip
                                         label={getTypeLabel(selectedGoal.type)}
                                         size="small"
@@ -497,6 +497,17 @@ const TimelinePage: React.FC = () => {
                                             color: '#64748b',
                                         }}
                                     />
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteGoal(selectedGoal.id)}
+                                        sx={{
+                                            ml: 'auto',
+                                            color: '#ef4444',
+                                            '&:hover': { backgroundColor: '#ef444420' }
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
                                 </Box>
                             </Box>
                         </CardContent>

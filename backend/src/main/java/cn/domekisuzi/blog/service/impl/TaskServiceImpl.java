@@ -48,6 +48,19 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskDTO createTask(TaskDTO dto) {
+        // 检查同一模块下是否已存在相同标题的任务
+        if (dto.getTitle() != null && !dto.getTitle().isEmpty()) {
+            List<Task> existingTasks = taskRepository.findByTitle(dto.getTitle());
+            for (Task existing : existingTasks) {
+                // 如果模块相同（都为空或相同模块名），则认为是重复
+                boolean sameModule = (dto.getModuleName() == null || dto.getModuleName().isEmpty()) 
+                    ? existing.getModule() == null 
+                    : existing.getModule() != null && existing.getModule().getName().equals(dto.getModuleName());
+                if (sameModule) {
+                    throw new IllegalArgumentException("该模块下已存在相同标题的任务: " + dto.getTitle());
+                }
+            }
+        }
 
         Task task = taskMapper.toEntity(dto);
         task.setId(null); // 确保 ID 由数据库生成
@@ -67,7 +80,7 @@ public class TaskServiceImpl implements TaskService {
             if (dto.getDueDate() == "") {
                 existing.setDueDate(null);
             } else {
-                existing.setDueDate(LocalDateTime.parse(dto.getDueDate()));
+                existing.setDueDate(taskMapper.parseDateTime(dto.getDueDate()));
             }
 
         }
