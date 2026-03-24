@@ -42,3 +42,5 @@
 - [2026-03-24 20:33] TaskMapper 修复日期解析，只保留日期部分（yyyy-MM-dd），去掉时间
 - [2026-03-24 20:39] SubtaskMapper 修复日期解析，添加对单毫秒位格式的支持（如 2026-03-13 15:00:00.0）
 - [2026-03-24 20:48] TaskMapper/TaskServiceImpl/DataExportImportServiceImpl 统一使用 TaskMapper.parseDateTime 方法解析日期，修复所有直接使用 LocalDateTime.parse 导致的日期解析错误
+- [2026-03-24 21:08] DateUtil.ts 移除 UTC 转换，使用本地时间处理日期，修复日历选择日期后显示偏差问题（时区问题）
+- [2026-03-24 21:08] TaskMapper.java 重新创建，优化 parseDateTime 方法使用 LocalDate 解析日期

@@ -1,25 +1,23 @@
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 import { PickerValue } from '@mui/x-date-pickers/internals'
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
-//this code is just show the datebase date,need backend to deal with the tiemzoine 
-const DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss'
+// 使用本地时间，不进行 UTC 转换
+const DATE_FORMAT = 'YYYY-MM-DD'
 const DISPLAY_FORMAT = 'YYYY-MM-DD HH:mm'
 
 export const dateUtils = {
   toBackendFormat(date: Date | string | null | PickerValue): string {
-    return date ? dayjs(date).utc().format(DATE_FORMAT) : ''
+    // 直接使用本地时间，不转换 UTC
+    return date ? dayjs(date).format(DATE_FORMAT) : ''
   },
   toDisplayFormat(dateStr: string): string {
-    return dayjs.utc(dateStr).tz(dayjs.tz.guess()).format(DISPLAY_FORMAT)
+    // 直接显示，不做时区转换
+    return dateStr ? dayjs(dateStr).format(DISPLAY_FORMAT) : ''
   },
   now(): string {
-    return dayjs().utc().format(DATE_FORMAT)
+    return dayjs().format(DATE_FORMAT)
   },
   toDisplayWithPattern(dateStr: string, pattern: string): string {
-    return dayjs.utc(dateStr).tz(dayjs.tz.guess()).format(pattern)
+    return dateStr ? dayjs(dateStr).format(pattern) : ''
   }
 }
