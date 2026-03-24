@@ -8,18 +8,21 @@ import AppRoutes from './router';
 import CircularProgress from '@mui/material/CircularProgress';
 import Backdrop from '@mui/material/Backdrop';
 import { useLoading } from '../context/LoadingContext';
+import { NotificationProvider } from '../components/Notification';
 
 
 const App = () =>{ 
     
     const { loading, setLoading } = useLoading()
     return (
-        <Layout>
-            <Backdrop open={loading} sx={{ zIndex: 9999 }}>
-                <CircularProgress color="inherit" />
-            </Backdrop>
-        <AppRoutes/>
-    </Layout>
+        <NotificationProvider>
+            <Layout>
+                <Backdrop open={loading} sx={{ zIndex: 9999 }}>
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+                <AppRoutes/>
+            </Layout>
+        </NotificationProvider>
     )
 }
 export default App

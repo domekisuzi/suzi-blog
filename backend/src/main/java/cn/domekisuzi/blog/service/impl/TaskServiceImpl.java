@@ -79,7 +79,13 @@ public class TaskServiceImpl implements TaskService {
 
         if (dto.getSubtasks() != null) {
             for (SubtaskDTO subtask : dto.getSubtasks()) {
-                subtaskService.updateSubtask(existing.getId(), subtask.getId(), subtask);
+                // 如果子任务 ID 为空，说明是新建的子任务
+                if (subtask.getId() == null || subtask.getId().isEmpty()) {
+                    subtaskService.createSubtask(existing.getId(), subtask);
+                } else {
+                    // 否则更新现有子任务
+                    subtaskService.updateSubtask(existing.getId(), subtask.getId(), subtask);
+                }
             }
         }
         Task updated = taskRepository.save(existing);

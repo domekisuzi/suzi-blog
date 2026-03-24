@@ -8,3 +8,20 @@
 - [2026-03-24 01:42] 绑定任务逻辑 修复绑定任务成功后刷新任务列表
 - [2026-03-24 01:46] 绑定任务对话框 修复对话框打开时自动加载任务列表
 - [2026-03-24 01:54] 绑定任务逻辑 修复目标不存在时的错误处理
+- [2026-03-24 03:12] 环境配置 修改 REACT_APP_USE_LOCAL_STORAGE=false 使前端从后端 API 获取数据
+- [2026-03-24 03:18] TaskMapper 修复 createdAt/updatedAt 为 null 时的 400 错误
+- [2026-03-24 03:28] TimelinePage 修复代码截断问题，补充绑定任务按钮的 onClick 闭合代码
+- [2026-03-24 03:38] TaskMapper 修复 toEntity 方法空字符串解析问题，恢复创建/更新任务接口
+- [2026-03-24 03:42] Module 实体 添加 cascade = ALL 配置，修复删除 Module 时外键约束错误
+- [2026-03-24 11:39] TaskRepository 修复 SQL 查询中 JSON_ARRAYAGG 导致的重复数据问题
+- [2026-03-24 11:46] ModuleRepository 修复 findMoudleDetailVo SQL 查询中 LEFT JOIN 导致的重复数据问题
+- [2026-03-24 13:53] GoalServiceImpl 修复目标可以重复绑定同一个 task 的问题
+- [2026-03-24 14:18] Notification 组件 新增自定义通知组件替换浏览器默认 alert
+- [2026-03-24 14:18] TimelinePage/QuickAddTaskDialog 替换浏览器 alert 为自定义通知提示
+- [2026-03-24 15:46] SubtaskMapper 修复 toDTO 方法未设置 taskId 的问题
+- [2026-03-24 15:46] taskApi 添加 deleteSubtaskById 空值检查防止 taskId 为 null
+- [2026-03-24 15:52] SubtaskPage 替换 window.confirm 为 ConfirmDialog 组件，添加删除通知
+- [2026-03-24 16:13] SubtaskMapper 修复日期解析错误，支持带毫秒的日期格式（如 2026-03-25 21:00:00.000000）
+- [2026-03-24 16:21] SubtaskServiceImpl 修复 updateSubtask 方法使用 findById 替代 findByIdAndTaskId，避免返回多个结果
+- [2026-03-24 16:23] SubtaskServiceImpl 统一使用 SubtaskMapper.parseDateTime 解析日期，修复所有日期解析问题
+- [2026-03-24 16:45] TaskServiceImpl 修复 updateTask 方法，区分子任务新建和更新逻辑，避免子任务标题被清空

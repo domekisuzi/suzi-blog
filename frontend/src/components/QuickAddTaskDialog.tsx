@@ -20,6 +20,7 @@ import { fetchModules } from '../domains/module/api/moduleApi'
 import { createTask } from '../domains/task/api/taskApi'
 import { Module } from '../domains/module/model/module'
 import { TaskPriority } from '../domains/task/model/taskTypes'
+import { useNotification } from './Notification'
 
 interface QuickAddTaskDialogProps {
     open: boolean
@@ -28,6 +29,7 @@ interface QuickAddTaskDialogProps {
 }
 
 const QuickAddTaskDialog: React.FC<QuickAddTaskDialogProps> = ({ open, onClose, onSuccess }) => {
+    const { showSuccess, showError } = useNotification()
     const [modules, setModules] = useState<Module[]>([])
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
@@ -43,7 +45,7 @@ const QuickAddTaskDialog: React.FC<QuickAddTaskDialogProps> = ({ open, onClose, 
 
     const handleSubmit = async () => {
         if (!title.trim()) {
-            alert('请输入任务标题')
+            showError('请输入任务标题')
             return
         }
 
@@ -63,11 +65,12 @@ const QuickAddTaskDialog: React.FC<QuickAddTaskDialogProps> = ({ open, onClose, 
             setModuleId('')
             setPriority('medium')
             
+            showSuccess('任务创建成功！')
             onSuccess?.()
             onClose()
         } catch (error) {
             console.error('创建任务失败:', error)
-            alert('创建任务失败')
+            showError('创建任务失败')
         } finally {
             setLoading(false)
         }

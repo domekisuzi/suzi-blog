@@ -78,7 +78,12 @@ export async function deleteSubtaskById(subtaskId: string): Promise<void> {
   const allSubtasks = await getAllSubtasks()
   const subtask = allSubtasks.find(s => s.id === subtaskId)
   if (subtask) {
+    if (!subtask.taskId) {
+      throw new Error('子任务不存在或不属于该任务：taskId 为空')
+    }
     await deleteSubtask(subtask.taskId, subtaskId)
+  } else {
+    throw new Error('子任务不存在')
   }
 }
 

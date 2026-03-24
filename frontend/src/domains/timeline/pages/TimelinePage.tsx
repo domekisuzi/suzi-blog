@@ -26,6 +26,7 @@ import FlagIcon from '@mui/icons-material/Flag'
 import DeleteIcon from '@mui/icons-material/Delete'
 import LinkIcon from '@mui/icons-material/Link'
 import { useLoading } from '../../../context/LoadingContext'
+import { useNotification } from '../../../components/Notification'
 import { fetchAllGoals, createGoal, deleteGoal, addTasksToGoal, GoalCreateInput, fetchTasksByGoalId, TaskInfo } from '../api/goalApi'
 import { fetchTasks } from '../../task/api/taskApi'
 import { Task } from '../../task/model/taskTypes'
@@ -47,6 +48,7 @@ interface Goal {
 
 const TimelinePage: React.FC = () => {
     const { setLoading } = useLoading()
+    const { showSuccess, showError, showWarning } = useNotification()
     const timelineRef = useRef<HTMLDivElement>(null)
     
     // 状态
@@ -93,7 +95,7 @@ const TimelinePage: React.FC = () => {
                 console.error('目标不存在:', bindingGoalId)
                 setBindTaskDialogOpen(false)
                 setBindingGoalId(null)
-                alert('目标已不存在，请刷新页面后重试')
+                showWarning('目标已不存在，请刷新页面后重试')
                 return
             }
             fetchTasks().then(tasks => {
@@ -514,11 +516,11 @@ const TimelinePage: React.FC = () => {
                                     onClick={() => {
                                         // 先验证目标是否仍然存在于目标列表中
                                         const goalExists = goals.find(g => g.id === selectedGoal.id)
-                                        if (!goalExists) {
-                                            alert('目标已不存在，请刷新页面后重试')
-                                            setSelectedGoal(null)
-                                            return
-                                        }
+                                    if (!goalExists) {
+                                        showWarning('目标已不存在，请刷新页面后重试')
+                                        setSelectedGoal(null)
+                                        return
+                                    }
                                         setBindingGoalId(selectedGoal.id)
                                         setBindTaskDialogOpen(true)
                                     }}
@@ -546,7 +548,7 @@ const TimelinePage: React.FC = () => {
                                         // 先验证目标是否仍然存在于目标列表中
                                         const goalExists = goals.find(g => g.id === selectedGoal.id)
                                         if (!goalExists) {
-                                            alert('目标已不存在，请重新选择')
+                                            showWarning('目标已不存在，请重新选择')
                                             setSelectedGoal(null)
                                             return
                                         }
@@ -863,11 +865,11 @@ const TimelinePage: React.FC = () => {
                                     setBindTaskDialogOpen(false)
                                     setSelectedTaskIds([])
                                     setBindingGoalId(null)
-                                    alert('任务绑定成功！')
+                                    showSuccess('任务绑定成功！')
                                 } catch (error: any) {
                                     console.error('绑定任务失败:', error)
                                     const errorMsg = error.response?.data?.message || error.message || '绑定任务失败，请重试'
-                                    alert('绑定任务失败：' + errorMsg)
+                                    showError('绑定任务失败：' + errorMsg)
                                 } finally {
                                     setLoading(false)
                                 }

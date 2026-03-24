@@ -29,17 +29,20 @@ public interface TaskRepository extends JpaRepository<Task, String> {
         t.due_date AS dueDate,
         t.created_at AS createdAt,
         COALESCE(st.completed_count * 100.0 / NULLIF(st.total_count, 0), 0) AS completedRate,
-        JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'id', s.id,
-                'title', s.title,
-                'completed', IF(s.completed = 1, TRUE, FALSE),
-                'dueDate', s.due_date
+        COALESCE(
+            (SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', s.id,
+                    'title', s.title,
+                    'completed', IF(s.completed = 1, TRUE, FALSE),
+                    'dueDate', s.due_date
+                )
             )
+            FROM subtasks s WHERE s.task_id = t.id),
+            JSON_ARRAY()
         ) AS subtasks
     FROM tasks t
     JOIN modules m ON t.module_id = m.id
-    LEFT JOIN subtasks s ON t.id = s.task_id
     LEFT JOIN (
         SELECT 
             task_id,
@@ -48,7 +51,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
         FROM subtasks
         GROUP BY task_id
     ) st ON t.id = st.task_id
-    GROUP BY t.id, t.title, t.description, m.name, t.completed, t.due_date, t.created_at, st.completed_count, st.total_count
+    GROUP BY t.id, t.title, t.description, m.name, t.priority, t.completed, t.due_date, t.created_at, st.completed_count, st.total_count
     """, nativeQuery = true)
 
     List<TaskDetailProjection> findTaskDetailVo();

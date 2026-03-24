@@ -55,11 +55,19 @@ public class SubtaskServiceImpl implements SubtaskService {
     
     @Override
     public SubtaskDTO updateSubtask(String taskId, String subtaskId, SubtaskDTO dto) {
-        Subtask subtask = subtaskRepo.findByIdAndTaskId(subtaskId, taskId)
-                .orElseThrow(() -> new IllegalArgumentException("子任务不存在或不属于该任务"));
+        // 使用 findById 而不是 findByIdAndTaskId，因为 ID 已经是唯一的
+        Subtask subtask = subtaskRepo.findById(subtaskId)
+                .orElseThrow(() -> new IllegalArgumentException("子任务不存在"));
+        
+        // 验证子任务是否属于指定的任务
+        if (subtask.getTask() == null || !subtask.getTask().getId().equals(taskId)) {
+            throw new IllegalArgumentException("子任务不属于该任务");
+        }
+        
         subtask.setTitle(dto.getTitle());
         subtask.setCompleted(dto.isCompleted());
-        subtask.setDueDate(dto.getDueDate() != null && !dto.getDueDate().isEmpty() ? LocalDateTime.parse(dto.getDueDate()) : null);
+        subtask.setDueDate(SubtaskMapper.parseDateTime(dto.getDueDate()));
+        subtask.setUpdatedAt(LocalDateTime.now());
         return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
 
@@ -90,7 +98,8 @@ public class SubtaskServiceImpl implements SubtaskService {
                 .orElseThrow(() -> new IllegalArgumentException("子任务不存在"));
         subtask.setTitle(dto.getTitle());
         subtask.setCompleted(dto.isCompleted());
-        subtask.setDueDate(dto.getDueDate() != null && !dto.getDueDate().isEmpty() ? LocalDateTime.parse(dto.getDueDate()) : null);
+        subtask.setDueDate(SubtaskMapper.parseDateTime(dto.getDueDate()));
+        subtask.setUpdatedAt(LocalDateTime.now());
         return SubtaskMapper.toDTO(subtaskRepo.save(subtask));
     }
 }

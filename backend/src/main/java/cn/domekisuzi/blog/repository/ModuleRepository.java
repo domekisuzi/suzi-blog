@@ -26,17 +26,13 @@ public interface ModuleRepository extends JpaRepository<Module, String> {
     SELECT 
       m.id AS id,
       m.name AS name,
-      COUNT(DISTINCT t.id) AS taskNumber,
-      COUNT(DISTINCT CASE WHEN t.completed = 1 THEN t.id END) AS completedTaskNumber,
-      COUNT(st.id) AS subtaskNumber,
-      COUNT(CASE WHEN st.completed = 1 THEN 1 END) AS completedSubtaskNumber,
+      (SELECT COUNT(*) FROM tasks t WHERE t.module_id = m.id) AS taskNumber,
+      (SELECT COUNT(*) FROM tasks t WHERE t.module_id = m.id AND t.completed = 1) AS completedTaskNumber,
+      (SELECT COUNT(*) FROM subtasks st JOIN tasks t ON st.task_id = t.id WHERE t.module_id = m.id) AS subtaskNumber,
+      (SELECT COUNT(*) FROM subtasks st JOIN tasks t ON st.task_id = t.id WHERE t.module_id = m.id AND st.completed = 1) AS completedSubtaskNumber,
       m.icon_svg AS iconSVG
     FROM 
       modules m
-    LEFT JOIN tasks t ON t.module_id = m.id
-    LEFT JOIN subtasks st ON st.task_id = t.id
-    GROUP BY 
-      m.id
     """, nativeQuery = true)
     List<ModuleDetailProjection> findMoudleDetailVo();
 }

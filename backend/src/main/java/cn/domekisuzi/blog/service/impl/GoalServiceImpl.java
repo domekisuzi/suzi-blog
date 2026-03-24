@@ -121,7 +121,16 @@ public class GoalServiceImpl implements GoalService {
             throw new ResourceNotFoundException("Some tasks not found");
         }
         
-        goal.getTasks().addAll(tasks);
+        // 过滤掉已存在的任务，避免重复绑定
+        Set<String> existingTaskIds = goal.getTasks().stream()
+                .map(Task::getId)
+                .collect(Collectors.toSet());
+        
+        List<Task> newTasks = tasks.stream()
+                .filter(task -> !existingTaskIds.contains(task.getId()))
+                .collect(Collectors.toList());
+        
+        goal.getTasks().addAll(newTasks);
         Goal updatedGoal = goalRepository.save(goal);
         
         // 自动重新计算进度

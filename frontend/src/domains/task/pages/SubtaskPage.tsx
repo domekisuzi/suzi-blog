@@ -14,6 +14,8 @@ import {
     Card,
     CardContent,
     ListItem,
+    Snackbar,
+    Alert,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SortIcon from '@mui/icons-material/Sort'
@@ -21,6 +23,7 @@ import AddIcon from '@mui/icons-material/Add'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import CircleIcon from '@mui/icons-material/Circle'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ConfirmDialog from '../../../components/ConfirmDialog'
 import { Subtask } from '../model/taskTypes'
 import { getAllSubtasks, deleteSubtaskById, updateSubtaskByEntity } from '../api/taskApi'
 import { useLoading } from '../../../context/LoadingContext'
@@ -43,6 +46,17 @@ const SubtaskPage: React.FC = () => {
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
     const [currentPage, setCurrentPage] = useState(1)
+
+    // 确认对话框状态
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    const [subtaskToDelete, setSubtaskToDelete] = useState<Subtask | null>(null)
+
+    // 通知状态
+    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
 
     // 加载数据
     useEffect(() => {
@@ -111,12 +125,46 @@ const SubtaskPage: React.FC = () => {
     }
 
     const handleDelete = (subtask: Subtask) => {
-        if (window.confirm('确定要删除这个子任务吗？')) {
-            setLoading(true)
-            deleteSubtaskById(subtask.id)
-                .then(() => loadSubtasks())
-                .catch(console.error)
-                .finally(() => setLoading(false))
+        setSubtaskToDelete(subtask)
+        setConfirmDialogOpen(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!subtaskToDelete) return
+        
+        // 检查 taskId 是否存在
+        if (!subtaskToDelete.taskId) {
+            setSnackbar({ 
+                open: true, 
+                message: '无法删除：该子任务数据不完整（缺少关联任务信息）', 
+                severity: 'error' 
+            })
+            setConfirmDialogOpen(false)
+            setSubtaskToDelete(null)
+            return
+        }
+        
+        setLoading(true)
+        try {
+            await deleteSubtaskById(subtaskToDelete.id)
+            setSnackbar({ 
+                open: true, 
+                message: `子任务 "${subtaskToDelete.title}" 删除成功`, 
+                severity: 'success' 
+            })
+            loadSubtasks()
+        } catch (error: any) {
+            console.error('Failed to delete subtask:', error)
+            const errorMessage = error.response?.data?.message || error.message || '删除子任务失败'
+            setSnackbar({ 
+                open: true, 
+                message: errorMessage, 
+                severity: 'error' 
+            })
+        } finally {
+            setLoading(false)
+            setConfirmDialogOpen(false)
+            setSubtaskToDelete(null)
         }
     }
 
@@ -390,6 +438,35 @@ const SubtaskPage: React.FC = () => {
                     />
                 </Box>
             )}
+
+            {/* 确认对话框 */}
+            <ConfirmDialog
+                open={confirmDialogOpen}
+                title="确认删除"
+                message={subtaskToDelete ? `确定要删除子任务 "${subtaskToDelete.title}" 吗？此操作不可恢复。` : ''}
+                onConfirm={handleConfirmDelete}
+                onClose={() => {
+                    setConfirmDialogOpen(false)
+                    setSubtaskToDelete(null)
+                }}
+                type="delete"
+            />
+
+            {/* 通知提示 */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={() => setSnackbar({ ...snackbar, open: false })} 
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     )
 }

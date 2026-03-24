@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, Chip, TextField, InputAdornment, IconButton, Menu, MenuItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material'
+import { Box, Typography, Chip, TextField, InputAdornment, IconButton, Menu, MenuItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
 import ViewListIcon from '@mui/icons-material/ViewList'
@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ModuleDetailCard from '../components/ModuleDetailCard'
+import ConfirmDialog from '../../../components/ConfirmDialog'
 import { fetchModules, updateModule, deleteModule, createModule } from '../api/moduleApi'
 import { Module } from '../model/module'
 import { getAllTaskVos } from '../../task/api/taskApi'
@@ -38,6 +39,17 @@ const ModulePage: React.FC = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false)
     const [editingModule, setEditingModule] = useState<ModuleWithProgress | null>(null)
     const [editModuleName, setEditModuleName] = useState('')
+
+    // 确认对话框状态
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    const [moduleToDelete, setModuleToDelete] = useState<Module | null>(null)
+
+    // 通知状态
+    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
 
     // 加载数据
     const loadModules = () => {
@@ -166,17 +178,26 @@ const ModulePage: React.FC = () => {
     }
 
     // 删除模块
-    const handleDeleteModule = async (module: Module) => {
-        if (window.confirm(`确定要删除模块 "${module.name}" 吗？`)) {
-            setLoading(true)
-            try {
-                await deleteModule(module.id)
-                loadModules()
-            } catch (error) {
-                console.error('Failed to delete module:', error)
-            } finally {
-                setLoading(false)
-            }
+    const handleDeleteModule = (module: Module) => {
+        setModuleToDelete(module)
+        setConfirmDialogOpen(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!moduleToDelete) return
+        
+        setLoading(true)
+        try {
+            await deleteModule(moduleToDelete.id)
+            setSnackbar({ open: true, message: `模块 "${moduleToDelete.name}" 删除成功`, severity: 'success' })
+            loadModules()
+        } catch (error) {
+            console.error('Failed to delete module:', error)
+            setSnackbar({ open: true, message: '删除模块失败，请重试', severity: 'error' })
+        } finally {
+            setLoading(false)
+            setConfirmDialogOpen(false)
+            setModuleToDelete(null)
         }
     }
 
@@ -533,6 +554,37 @@ const ModulePage: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* 删除确认对话框 */}
+            <ConfirmDialog
+                open={confirmDialogOpen}
+                onClose={() => {
+                    setConfirmDialogOpen(false)
+                    setModuleToDelete(null)
+                }}
+                onConfirm={handleConfirmDelete}
+                title="删除模块"
+                message={moduleToDelete ? `确定要删除模块 "${moduleToDelete.name}" 吗？此操作不可撤销。` : ''}
+                confirmText="删除"
+                cancelText="取消"
+                type="delete"
+            />
+
+            {/* 通知 Snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%', borderRadius: '12px' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     )
 }

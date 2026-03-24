@@ -16,6 +16,8 @@ import {
     DialogActions,
     Button,
     Pagination,
+    Snackbar,
+    Alert,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SortIcon from '@mui/icons-material/Sort'
@@ -25,6 +27,7 @@ import TaskMain from '../components/TaskMain'
 import TaskDetailCard from '../components/TaskDetailCard'
 import CreateTaskCard from '../components/CreateTaskCard'
 import CreateSubTaskCard from '../components/CreateSubTaskCard'
+import ConfirmDialog from '../../../components/ConfirmDialog'
 import { fetchTasks, deleteTask, updateTask, getAllTaskVos } from '../api/taskApi'
 import { fetchModules } from '../../module/api/moduleApi'
 import { Task, TaskDetailVo, Subtask } from '../model/taskTypes'
@@ -61,6 +64,17 @@ const TaskPage: React.FC = () => {
     const [editTaskOpen, setEditTaskOpen] = useState(false)
     const [createSubTaskOpen, setCreateSubTaskOpen] = useState(false)
     const [nowDetailTask, setNowDetailTask] = useState<Task | null>(null)
+
+    // 确认对话框状态
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    const [taskToDelete, setTaskToDelete] = useState<TaskDetailVo | null>(null)
+
+    // 通知状态
+    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
 
     // 加载数据
     useEffect(() => {
@@ -138,11 +152,25 @@ const TaskPage: React.FC = () => {
     const handleFilterClose = () => setFilterAnchorEl(null)
 
     const handleDeleteTask = (task: TaskDetailVo) => {
-        if (window.confirm('确定要删除这个任务吗？')) {
-            setLoading(true)
-            deleteTask(task.id).then(() => {
-                refreshData()
-            }).finally(() => setLoading(false))
+        setTaskToDelete(task)
+        setConfirmDialogOpen(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!taskToDelete) return
+        
+        setLoading(true)
+        try {
+            await deleteTask(taskToDelete.id)
+            setSnackbar({ open: true, message: `任务 "${taskToDelete.title}" 删除成功`, severity: 'success' })
+            refreshData()
+        } catch (error) {
+            console.error('Failed to delete task:', error)
+            setSnackbar({ open: true, message: '删除任务失败，请重试', severity: 'error' })
+        } finally {
+            setLoading(false)
+            setConfirmDialogOpen(false)
+            setTaskToDelete(null)
         }
     }
 
@@ -696,6 +724,37 @@ const TaskPage: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* 删除确认对话框 */}
+            <ConfirmDialog
+                open={confirmDialogOpen}
+                onClose={() => {
+                    setConfirmDialogOpen(false)
+                    setTaskToDelete(null)
+                }}
+                onConfirm={handleConfirmDelete}
+                title="删除任务"
+                message={taskToDelete ? `确定要删除任务 "${taskToDelete.title}" 吗？此操作不可撤销。` : ''}
+                confirmText="删除"
+                cancelText="取消"
+                type="delete"
+            />
+
+            {/* 通知 Snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%', borderRadius: '12px' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     )
 }

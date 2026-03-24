@@ -28,7 +28,7 @@ public class Module extends BaseEntity {
     @Column(name = "icon_svg")
     private String iconSVG;
 
-    @OneToMany(mappedBy = "module")
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Task> tasks;
 

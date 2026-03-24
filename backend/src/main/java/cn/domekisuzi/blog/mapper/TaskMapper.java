@@ -36,15 +36,20 @@ public class TaskMapper {
         task.setCompleted(dto.isCompleted());
 
         if (dto.getDueDate() != null && !dto.getDueDate().isEmpty()) {
-            if(dto.getDueDate().isEmpty()){
-                task.setDueDate(null);
-            }
-            else 
             task.setDueDate(LocalDateTime.parse(dto.getDueDate()));
         }
 
-        task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
-        task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
+        // 处理空字符串或 null 情况
+        if (dto.getCreatedAt() != null && !dto.getCreatedAt().isEmpty()) {
+            task.setCreatedAt(LocalDateTime.parse(dto.getCreatedAt()));
+        } else {
+            task.setCreatedAt(LocalDateTime.now());
+        }
+        if (dto.getUpdatedAt() != null && !dto.getUpdatedAt().isEmpty()) {
+            task.setUpdatedAt(LocalDateTime.parse(dto.getUpdatedAt()));
+        } else {
+            task.setUpdatedAt(LocalDateTime.now());
+        }
 
         if (dto.getModuleName() != null && dto.getModuleName() != "") {
             Module module = moduleRepository.findByName(dto.getModuleName())

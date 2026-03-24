@@ -27,6 +27,9 @@ import java.util.UUID;
 @Configuration
 public class DataInitializer {
 
+    // 设置为 false 以禁用启动时数据初始化
+    private static final boolean ENABLE_DATA_INIT = false;
+
     @Bean
     CommandLineRunner initData(
             GoalRepository goalRepository,
@@ -35,6 +38,12 @@ public class DataInitializer {
             SubtaskRepository subtaskRepository
     ) {
         return args -> {
+            // 如果禁用数据初始化，直接返回
+            if (!ENABLE_DATA_INIT) {
+                System.out.println("⏭️ 数据初始化已禁用，跳过初始化");
+                return;
+            }
+
             // 如果已有数据，跳过初始化
             if (moduleRepository.count() > 0 && goalRepository.count() > 0) {
                 System.out.println("✅ 数据库已有数据，跳过初始化");
