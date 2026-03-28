@@ -16,6 +16,11 @@ import {
     ListItem,
     Snackbar,
     Alert,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SortIcon from '@mui/icons-material/Sort'
@@ -23,10 +28,12 @@ import AddIcon from '@mui/icons-material/Add'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import CircleIcon from '@mui/icons-material/Circle'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import EditIcon from '@mui/icons-material/Edit'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import { Subtask } from '../model/taskTypes'
 import { getAllSubtasks, deleteSubtaskById, updateSubtaskByEntity } from '../api/taskApi'
 import { useLoading } from '../../../context/LoadingContext'
+import { dateUtils } from '../../../shared/utils/DateUtil'
 
 type SortMode = 'name' | 'date' | 'status'
 type FilterStatus = 'all' | 'pending' | 'completed'
@@ -50,6 +57,12 @@ const SubtaskPage: React.FC = () => {
     // 确认对话框状态
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     const [subtaskToDelete, setSubtaskToDelete] = useState<Subtask | null>(null)
+
+    // 编辑对话框状态
+    const [editDialogOpen, setEditDialogOpen] = useState(false)
+    const [subtaskToEdit, setSubtaskToEdit] = useState<Subtask | null>(null)
+    const [editTitle, setEditTitle] = useState('')
+    const [editDueDate, setEditDueDate] = useState('')
 
     // 通知状态
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -166,6 +179,51 @@ const SubtaskPage: React.FC = () => {
             setConfirmDialogOpen(false)
             setSubtaskToDelete(null)
         }
+    }
+
+    // 编辑处理函数
+    const handleEditClick = (subtask: Subtask) => {
+        setSubtaskToEdit(subtask)
+        setEditTitle(subtask.title)
+        setEditDueDate(subtask.dueDate || '')
+        setEditDialogOpen(true)
+    }
+
+    const handleEditSave = async () => {
+        if (!subtaskToEdit) return
+        
+        setLoading(true)
+        try {
+            await updateSubtaskByEntity({
+                ...subtaskToEdit,
+                title: editTitle,
+                dueDate: editDueDate || undefined,
+            })
+            setSnackbar({ 
+                open: true, 
+                message: '子任务更新成功', 
+                severity: 'success' 
+            })
+            loadSubtasks()
+            setEditDialogOpen(false)
+            setSubtaskToEdit(null)
+        } catch (error: any) {
+            console.error('Failed to update subtask:', error)
+            setSnackbar({ 
+                open: true, 
+                message: error.response?.data?.message || '更新子任务失败', 
+                severity: 'error' 
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleEditCancel = () => {
+        setEditDialogOpen(false)
+        setSubtaskToEdit(null)
+        setEditTitle('')
+        setEditDueDate('')
     }
 
     // 统计
@@ -385,9 +443,16 @@ const SubtaskPage: React.FC = () => {
                                     >
                                         {subtask.title}
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: 12 }}>
-                                        创建于 {subtask.createdAt ? new Date(subtask.createdAt).toLocaleDateString() : '未知'}
-                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                        <Typography variant="body2" sx={{ color: '#94a3b8', fontSize: 12 }}>
+                                            创建于 {subtask.createdAt ? new Date(subtask.createdAt).toLocaleDateString() : '未知'}
+                                        </Typography>
+                                        {subtask.dueDate && (
+                                            <Typography variant="body2" sx={{ color: '#f59e0b', fontSize: 12 }}>
+                                                截止: {dateUtils.toDisplayFormat(subtask.dueDate)}
+                                            </Typography>
+                                        )}
+                                    </Box>
                                 </Box>
 
                                 {/* 状态标签 */}
@@ -403,6 +468,19 @@ const SubtaskPage: React.FC = () => {
                                         '& .MuiChip-icon': { color: 'inherit' },
                                     }}
                                 />
+
+                                {/* 编辑按钮 */}
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleEditClick(subtask)}
+                                    sx={{
+                                        backgroundColor: '#eff6ff',
+                                        color: '#3b82f6',
+                                        '&:hover': { backgroundColor: '#dbeafe' },
+                                    }}
+                                >
+                                    <EditIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
 
                                 {/* 删除按钮 */}
                                 <IconButton
@@ -438,6 +516,70 @@ const SubtaskPage: React.FC = () => {
                     />
                 </Box>
             )}
+
+            {/* 编辑对话框 */}
+            <Dialog
+                open={editDialogOpen}
+                onClose={handleEditCancel}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    color: '#1e293b',
+                    borderBottom: '1px solid #e2e8f0',
+                    pb: 2,
+                }}>
+                    ✏️ 编辑子任务
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
+                    <TextField
+                        label="标题"
+                        fullWidth
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        sx={{ mb: 3 }}
+                    />
+                    <TextField
+                        label="截止日期"
+                        type="date"
+                        fullWidth
+                        value={editDueDate ? dateUtils.toDisplayWithPattern(editDueDate, 'YYYY-MM-DD') : ''}
+                        onChange={(e) => setEditDueDate(dateUtils.toBackendFormat(e.target.value))}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                </DialogContent>
+                <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+                    <Button 
+                        onClick={handleEditCancel}
+                        sx={{ 
+                            color: '#64748b',
+                            '&:hover': { backgroundColor: '#f1f5f9' }
+                        }}
+                    >
+                        取消
+                    </Button>
+                    <Button 
+                        onClick={handleEditSave}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#6366f1',
+                            borderRadius: '8px',
+                            px: 3,
+                            '&:hover': { backgroundColor: '#4f46e5' }
+                        }}
+                    >
+                        保存
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* 确认对话框 */}
             <ConfirmDialog

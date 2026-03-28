@@ -207,9 +207,11 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
                                               secondary={
                                                 sub.completed ? '已完成' : '未完成'
                                               }/>
-                                {sub.dueDate && <ListItemText primary={"due date :" +sub.dueDate }
-                                            
-                                              />}
+                                {sub.dueDate && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                        截止: {dateUtils.toDisplayFormat(sub.dueDate)}
+                                    </Typography>
+                                )}
                             </ListItem>
                         ))}
                     </List>

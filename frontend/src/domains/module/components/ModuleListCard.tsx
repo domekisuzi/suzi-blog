@@ -11,8 +11,19 @@ import {
 import { renderSvgNode } from '../../../shared/utils/renderSvg';
 import { parseSvgToJson } from '../../../shared/utils/parseSvgToJson';
 import { Module } from '../model/module';
- 
 
+// 判断是否为图片 URL
+const isImageUrl = (url: string): boolean => {
+  if (!url) return false;
+  return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image');
+}
+
+// 判断是否为 SVG 字符串
+const isSvgString = (str: string): boolean => {
+  if (!str) return false;
+  return str.trim().startsWith('<svg') || str.trim().startsWith('<?xml');
+}
+ 
 /**
  * A List to show all module, it is designed to show its task when clicked , but now it may be deprecated 
  *  */ 
@@ -36,31 +47,46 @@ export default function ModuleListCard({
         <List>
           {modules &&
             modules.map((mod) => {
-
-              const svgJson = mod.iconSVG ? parseSvgToJson(mod.iconSVG) : null;
+              const iconSVG = mod.iconSVG || '';
+              const isImgUrl = isImageUrl(iconSVG);
+              const isSvg = isSvgString(iconSVG);
+              const svgJson = isSvg ? parseSvgToJson(iconSVG) : null;
                 
-            //   console.log("svg有无",mod.iconSVG)
-
-            
-            //   console.log("创建了", svgJson)
               return (
                 <ListItemButton
                   key={mod.id}
                   selected={mod.id === selectedModuleId}
                   onClick={() => onSelect?.(mod.id)}
                 >
-                  {svgJson && (
-                    <ListItemIcon sx={{ minWidth: 32 }}>
+                  {(isImgUrl || svgJson) && (
+                    <ListItemIcon sx={{ minWidth: 40 }}>
                       <Box
                         sx={{
-                          width: 24,
-                          height: 24,
+                          width: 32,
+                          height: 32,
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(0,0,0,0.05)',
                         }}
                       >
-                        {renderSvgNode(svgJson)}
+                        {isImgUrl ? (
+                          <img 
+                            src={iconSVG} 
+                            alt={mod.name}
+                            style={{ 
+                              width: '70%', 
+                              height: '70%', 
+                              objectFit: 'contain'
+                            }} 
+                          />
+                        ) : svgJson ? (
+                          <Box sx={{ width: 20, height: 20 }}>
+                            {renderSvgNode(svgJson)}
+                          </Box>
+                        ) : null}
+
                       </Box>
                     </ListItemIcon>
                   )}

@@ -16,6 +16,7 @@ import { ReactComponent as SubTaskIcon } from '../asserts/icon/subtask.svg'
 import { ReactComponent as StatisticsIcon } from '../asserts/icon/statistics.svg'
 import { ReactComponent as ProjectIcon } from '../asserts/icon/project.svg'
 import { ReactComponent as TimelineIcon } from '../asserts/icon/timeline.svg'
+import StorageIcon from '@mui/icons-material/Storage'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 interface SidebarProps {
@@ -123,6 +124,33 @@ const Sidebar: React.FC<SidebarProps> = ({ onQuickAdd }) => {
                         />
                     </ListItemButton>
                 ))}
+
+                {/* 数据管理菜单项 */}
+                <ListItemButton
+                    onClick={() => navigate('/data')}
+                    sx={{
+                        borderRadius: '12px',
+                        marginBottom: '4px',
+                        backgroundColor: isActive('/data') ? 'rgba(99, 102, 241, 0.3)' : 'transparent',
+                        '&:hover': {
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        },
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                        <StorageIcon sx={{ color: isActive('/data') ? '#a5b4fc' : '#94a3b8' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                        primary="Data Manage" 
+                        sx={{ 
+                            '& .MuiListItemText-primary': { 
+                                color: isActive('/data') ? '#fff' : '#cbd5e1',
+                                fontWeight: isActive('/data') ? 600 : 400,
+                            } 
+                        }}
+                    />
+                </ListItemButton>
 
                 {/* Project 折叠菜单 */}
                 <ListItemButton

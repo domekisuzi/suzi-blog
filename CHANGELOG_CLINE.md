@@ -44,3 +44,78 @@
 - [2026-03-24 20:48] TaskMapper/TaskServiceImpl/DataExportImportServiceImpl 统一使用 TaskMapper.parseDateTime 方法解析日期，修复所有直接使用 LocalDateTime.parse 导致的日期解析错误
 - [2026-03-24 21:08] DateUtil.ts 移除 UTC 转换，使用本地时间处理日期，修复日历选择日期后显示偏差问题（时区问题）
 - [2026-03-24 21:08] TaskMapper.java 重新创建，优化 parseDateTime 方法使用 LocalDate 解析日期
+- [2026-03-24 21:38] TaskDetailCard 修复子任务过期时间显示，使用 dateUtils.toDisplayFormat 格式化
+- [2026-03-24 21:42] SubtaskPage 新增子任务过期时间显示（有则显示，无则不占空间）
+- [2026-03-24 21:43] SubtaskPage 新增子任务编辑功能，可修改标题和截止日期
+- [2026-03-28 17:23] 数据管理页面 新增独立的数据导入导出页面（DataManagePage）
+- [2026-03-28 17:23] Sidebar 导航 新增 Data Manage 菜单项，使用 Storage 图标
+- [2026-03-28 17:23] 路由配置 添加 /data 路由指向数据管理页面
+- [2026-03-28 17:38] Module 卡片 新增 icon 显示支持，从数据库 icon_svg 字段读取并渲染
+- [2026-03-28 17:38] data.sql 为 4 个示例模块添加 icon_svg 数据（前端开发/后端开发/数据库设计/UI设计）
+- [2026-03-28 17:38] Icon 资源 新增 5 个彩色填充风格 SVG icon 文件（code/design/document/archive/location）
+- [2026-03-28 18:40] 数据库表结构 修改 modules.icon_svg 字段类型为 TEXT，支持存储完整 SVG
+- [2026-03-28 18:40] 模块数据 为 7 个现有模块添加彩色 SVG 图标（修考/当老板/日语/健身/英语/看书/工作）
+- [2026-03-28 21:30] 模块图标 更换为 Flaticon 在线图标 URL，使用精美 PNG 图标
+- [2026-03-28 21:30] ModuleDetailCard 组件 新增支持图片 URL 显示，兼容 SVG 字符串和图片 URL
+- [2026-03-28 21:35] ModuleListCard 组件 新增支持图片 URL 显示，统一图标展示逻辑
+- [2026-03-28 21:50] ModuleDetailCard 组件 重新设计卡片样式，添加渐变背景和装饰性几何图形
+- [2026-03-28 21:50] 模块卡片 使用 emoji 图标融入背景设计，每个模块有独特的渐变色
+# Cline 更新记录
+
+- [2026-03-24 01:20] 跨域配置 修复前后端跨域访问问题（修改 WebConfig.java）
+- [2026-03-24 01:30] 时间线页面 新增点击目标显示绑定任务功能（修改 TimelinePage.tsx）
+- [2026-03-24 01:35] 后端 API 新增获取目标绑定任务接口（GoalController/Service/ServiceImpl）
+- [2026-03-24 01:37] 绑定任务 API 修复路径冲突问题（GET 路径改为/tasks/list）
+- [2026-03-24 01:41] 项目规范 创建.rules 文件和 CHANGELOG_CLINE.md 记录文件
+- [2026-03-24 01:42] 绑定任务逻辑 修复绑定任务成功后刷新任务列表
+- [2026-03-24 01:46] 绑定任务对话框 修复对话框打开时自动加载任务列表
+- [2026-03-24 01:54] 绑定任务逻辑 修复目标不存在时的错误处理
+- [2026-03-24 03:12] 环境配置 修改 REACT_APP_USE_LOCAL_STORAGE=false 使前端从后端 API 获取数据
+- [2026-03-24 03:18] TaskMapper 修复 createdAt/updatedAt 为 null 时的 400 错误
+- [2026-03-24 03:28] TimelinePage 修复代码截断问题，补充绑定任务按钮的 onClick 闭合代码
+- [2026-03-24 03:38] TaskMapper 修复 toEntity 方法空字符串解析问题，恢复创建/更新任务接口
+- [2026-03-24 03:42] Module 实体 添加 cascade = ALL 配置，修复删除 Module 时外键约束错误
+- [2026-03-24 11:39] TaskRepository 修复 SQL 查询中 JSON_ARRAYAGG 导致的重复数据问题
+- [2026-03-24 11:46] ModuleRepository 修复 findMoudleDetailVo SQL 查询中 LEFT JOIN 导致的重复数据问题
+- [2026-03-24 13:53] GoalServiceImpl 修复目标可以重复绑定同一个 task 的问题
+- [2026-03-24 14:18] Notification 组件 新增自定义通知组件替换浏览器默认 alert
+- [2026-03-24 14:18] TimelinePage/QuickAddTaskDialog 替换浏览器 alert 为自定义通知提示
+- [2026-03-24 15:46] SubtaskMapper 修复 toDTO 方法未设置 taskId 的问题
+- [2026-03-24 15:46] taskApi 添加 deleteSubtaskById 空值检查防止 taskId 为 null
+- [2026-03-24 15:52] SubtaskPage 替换 window.confirm 为 ConfirmDialog 组件，添加删除通知
+- [2026-03-24 16:13] SubtaskMapper 修复日期解析错误，支持带毫秒的日期格式（如 2026-03-25 21:00:00.000000）
+- [2026-03-24 16:21] SubtaskServiceImpl 修复 updateSubtask 方法使用 findById 替代 findByIdAndTaskId，避免返回多个结果
+- [2026-03-24 16:23] SubtaskServiceImpl 统一使用 SubtaskMapper.parseDateTime 解析日期，修复所有日期解析问题
+- [2026-03-24 16:45] TaskServiceImpl 修复 updateTask 方法，区分子任务新建和更新逻辑，避免子任务标题被清空
+- [2026-03-24 17:36] 数据导出导入 新增数据备份与恢复功能（Dashboard 页面添加导出/导入按钮）
+- [2026-03-24 18:02] 数据导入 修复模块名称重复导致的导入失败问题，添加 findAllByName 方法
+- [2026-03-24 19:27] 数据清理 手动合并 JSON 文件中重复的"日语"模块
+- [2026-03-24 19:28] ModuleServiceImpl 添加重复模块名称校验，防止创建同名模块
+- [2026-03-24 19:29] ModulePage 前端添加重复模块名称校验，创建前检查名称是否已存在
+- [2026-03-24 19:43] TaskMapper 修复 toEntity 方法使用 findAllByName 替代 findByName，避免重复模块名查询错误
+- [2026-03-24 19:44] TaskServiceImpl 添加重复任务标题校验（同一模块下不能重复）
+- [2026-03-24 19:44] TaskRepository 添加 findByTitle 方法支持任务标题查询
+- [2026-03-24 19:52] DataExportImportServiceImpl 修复子任务导入时的 detached entity 错误，手动创建新 Subtask 对象
+- [2026-03-24 20:02] DataExportImportServiceImpl 修复任务导入逻辑，避免使用 TaskMapper.toEntity 导致子任务带有旧 ID
+- [2026-03-24 20:14] Header 组件 将导入导出按钮从 Dashboard 移到右上角工具栏
+- [2026-03-24 20:14] Dashboard 页面 移除导入导出按钮，改为简单的欢迎页面
+- [2026-03-24 20:18] GoalServiceImpl 修复删除goal时外键约束错误，先清除任务关联再删除
+- [2026-03-24 20:19] TimelinePage 新增删除goal按钮，在选中目标卡片上显示删除图标
+- [2026-03-24 20:33] TaskMapper 修复日期解析，只保留日期部分（yyyy-MM-dd），去掉时间
+- [2026-03-24 20:39] SubtaskMapper 修复日期解析，添加对单毫秒位格式的支持（如 2026-03-13 15:00:00.0）
+- [2026-03-24 20:48] TaskMapper/TaskServiceImpl/DataExportImportServiceImpl 统一使用 TaskMapper.parseDateTime 方法解析日期，修复所有直接使用 LocalDateTime.parse 导致的日期解析错误
+- [2026-03-24 21:08] DateUtil.ts 移除 UTC 转换，使用本地时间处理日期，修复日历选择日期后显示偏差问题（时区问题）
+- [2026-03-24 21:08] TaskMapper.java 重新创建，优化 parseDateTime 方法使用 LocalDate 解析日期
+- [2026-03-24 21:38] TaskDetailCard 修复子任务过期时间显示，使用 dateUtils.toDisplayFormat 格式化
+- [2026-03-24 21:42] SubtaskPage 新增子任务过期时间显示（有则显示，无则不占空间）
+- [2026-03-24 21:43] SubtaskPage 新增子任务编辑功能，可修改标题和截止日期
+- [2026-03-28 17:23] 数据管理页面 新增独立的数据导入导出页面（DataManagePage）
+- [2026-03-28 17:23] Sidebar 导航 新增 Data Manage 菜单项，使用 Storage 图标
+- [2026-03-28 17:23] 路由配置 添加 /data 路由指向数据管理页面
+- [2026-03-28 17:38] Module 卡片 新增 icon 显示支持，从数据库 icon_svg 字段读取并渲染
+- [2026-03-28 17:38] data.sql 为 4 个示例模块添加 icon_svg 数据（前端开发/后端开发/数据库设计/UI设计）
+- [2026-03-28 17:38] Icon 资源 新增 5 个彩色填充风格 SVG icon 文件（code/design/document/archive/location）
+- [2026-03-28 18:40] 数据库表结构 修改 modules.icon_svg 字段类型为 TEXT，支持存储完整 SVG
+- [2026-03-28 18:40] 模块数据 为 7 个现有模块添加彩色 SVG 图标（修考/当老板/日语/健身/英语/看书/工作）
+
+
