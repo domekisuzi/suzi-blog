@@ -53,7 +53,7 @@
 
 ![Data Management](./github-assets/suzi-data-manage.png)
 
-## 7. ONE-TO-ONEサマリー（面接向け）
+## 7. ONE-TO-ONEサマリー
 
 実装だけでなく、要件整理 → 情報設計 → 画面構成 → API連携 → 利用継続の運用設計までを通して、  
 業務の変化に追従する実装サイクルを回してきました。
