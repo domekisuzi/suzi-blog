@@ -29,11 +29,14 @@ const Dashboard: React.FC = () => {
                     <Typography variant="body2" sx={{ mb: 1 }}>
                         • <strong>时间线</strong> - 设置目标并追踪进度
                     </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                        • <strong>书单</strong> - 管理阅读清单
-                    </Typography>
-                </Box>
-            </Paper>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                    • <strong>书单</strong> - 记录按分类管理的书籍感想与学到的知识
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                    • <strong>Google 会议表</strong> - 按周管理日程（支持分类、时段块和编辑）
+                </Typography>
+            </Box>
+        </Paper>
 
             <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>

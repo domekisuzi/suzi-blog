@@ -36,6 +36,7 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import { useLoading } from '../../../context/LoadingContext'
 import { useNotification } from '../../../components/Notification'
+import ConfirmDialog from '../../../components/ConfirmDialog'
 import { fetchAllGoals, createGoal, deleteGoal, addTasksToGoal, GoalCreateInput, fetchTasksByGoalId, TaskInfo } from '../api/goalApi'
 import { fetchTasks } from '../../task/api/taskApi'
 import { Task } from '../../task/model/taskTypes'
@@ -106,6 +107,17 @@ const TimelinePage: React.FC = () => {
         endDate: '',
         type: 'SHORT_TERM' as Goal['type'],
     })
+    
+    // 表单验证错误
+    const [formErrors, setFormErrors] = useState<{
+        title?: string
+        startDate?: string
+        endDate?: string
+    }>({})
+    
+    // 删除确认对话框状态
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null)
 
     // 保存折叠状态到本地存储
     useEffect(() => {
@@ -272,41 +284,106 @@ const TimelinePage: React.FC = () => {
         return goals.filter(g => !hiddenGoals.includes(g.id))
     }
 
-    // 添加目标
-    const handleAddGoal = async () => {
-        if (newGoal.title && newGoal.startDate && newGoal.endDate) {
-            setLoading(true)
-            try {
-                const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6']
-                const input: GoalCreateInput = {
-                    ...newGoal,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                }
-                await createGoal(input)
-                await loadGoals()
-                setAddDialogOpen(false)
-                setNewGoal({ title: '', description: '', startDate: '', endDate: '', type: 'SHORT_TERM' })
-            } catch (error) {
-                console.error('创建目标失败:', error)
-            } finally {
-                setLoading(false)
+    // 验证表单
+    const validateForm = () => {
+        const errors: { title?: string; startDate?: string; endDate?: string } = {}
+        
+        if (!newGoal.title.trim()) {
+            errors.title = '请输入目标名称'
+        }
+        
+        if (!newGoal.startDate) {
+            errors.startDate = '请选择开始日期'
+        }
+        
+        if (!newGoal.endDate) {
+            errors.endDate = '请选择结束日期'
+        }
+        
+        if (newGoal.startDate && newGoal.endDate) {
+            const start = new Date(newGoal.startDate)
+            const end = new Date(newGoal.endDate)
+            if (end < start) {
+                errors.endDate = '结束日期不能早于开始日期'
             }
         }
+        
+        setFormErrors(errors)
+        return Object.keys(errors).length === 0
+    }
+    
+    // 处理输入变化
+    const handleInputChange = (field: keyof typeof newGoal, value: string) => {
+        setNewGoal(prev => ({ ...prev, [field]: value }))
+        // 清除对应字段的错误
+        if (formErrors[field as keyof typeof formErrors]) {
+            setFormErrors(prev => ({ ...prev, [field]: undefined }))
+        }
+    }
+    
+    // 添加目标
+    const handleAddGoal = async () => {
+        if (!validateForm()) {
+            showError('请填写完整的目标信息')
+            return
+        }
+        
+        setLoading(true)
+        try {
+            const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6']
+            const input: GoalCreateInput = {
+                ...newGoal,
+                color: colors[Math.floor(Math.random() * colors.length)],
+            }
+            await createGoal(input)
+            await loadGoals()
+            setAddDialogOpen(false)
+            setNewGoal({ title: '', description: '', startDate: '', endDate: '', type: 'SHORT_TERM' })
+            setFormErrors({})
+            showSuccess('目标创建成功！')
+        } catch (error: any) {
+            console.error('创建目标失败:', error)
+            const errorMsg = error.response?.data?.message || error.message || '创建目标失败，请重试'
+            showError('创建目标失败：' + errorMsg)
+        } finally {
+            setLoading(false)
+        }
+    }
+    
+    // 关闭对话框时重置表单
+    const handleCloseDialog = () => {
+        setAddDialogOpen(false)
+        setNewGoal({ title: '', description: '', startDate: '', endDate: '', type: 'SHORT_TERM' })
+        setFormErrors({})
     }
 
-    // 删除目标
-    const handleDeleteGoal = async (id: string) => {
-        if (window.confirm('确定要删除这个目标吗？')) {
-            setLoading(true)
-            try {
-                await deleteGoal(id)
-                await loadGoals()
+    // 打开删除确认对话框
+    const handleDeleteGoal = (goal: Goal) => {
+        setGoalToDelete(goal)
+        setConfirmDialogOpen(true)
+    }
+    
+    // 确认删除目标
+    const handleConfirmDelete = async () => {
+        if (!goalToDelete) return
+        
+        setLoading(true)
+        try {
+            await deleteGoal(goalToDelete.id)
+            showSuccess(`目标 "${goalToDelete.title}" 删除成功`)
+            await loadGoals()
+            // 如果删除的是当前选中的目标，清除选中状态
+            if (selectedGoal?.id === goalToDelete.id) {
                 setSelectedGoal(null)
-            } catch (error) {
-                console.error('删除目标失败:', error)
-            } finally {
-                setLoading(false)
             }
+        } catch (error: any) {
+            console.error('删除目标失败:', error)
+            const errorMsg = error.response?.data?.message || error.message || '删除目标失败'
+            showError('删除目标失败：' + errorMsg)
+        } finally {
+            setLoading(false)
+            setConfirmDialogOpen(false)
+            setGoalToDelete(null)
         }
     }
     
@@ -718,7 +795,7 @@ const TimelinePage: React.FC = () => {
                                             />
                                             <IconButton
                                                 size="small"
-                                                onClick={() => handleDeleteGoal(selectedGoal.id)}
+                                                onClick={() => handleDeleteGoal(selectedGoal)}
                                                 sx={{
                                                     ml: 'auto',
                                                     color: '#ef4444',
@@ -945,7 +1022,7 @@ const TimelinePage: React.FC = () => {
             {/* 添加目标对话框 */}
             <Dialog
                 open={addDialogOpen}
-                onClose={() => setAddDialogOpen(false)}
+                onClose={handleCloseDialog}
                 maxWidth="sm"
                 fullWidth
                 PaperProps={{
@@ -968,8 +1045,11 @@ const TimelinePage: React.FC = () => {
                     <TextField
                         label="目标名称"
                         fullWidth
+                        required
                         value={newGoal.title}
-                        onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                        error={!!formErrors.title}
+                        helperText={formErrors.title}
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                     />
                     <TextField
@@ -978,7 +1058,7 @@ const TimelinePage: React.FC = () => {
                         multiline
                         rows={2}
                         value={newGoal.description}
-                        onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                     />
                     <Box sx={{ display: 'flex', gap: 2 }}>
@@ -986,8 +1066,11 @@ const TimelinePage: React.FC = () => {
                             label="开始日期"
                             type="date"
                             fullWidth
+                            required
                             value={newGoal.startDate}
-                            onChange={(e) => setNewGoal({ ...newGoal, startDate: e.target.value })}
+                            onChange={(e) => handleInputChange('startDate', e.target.value)}
+                            error={!!formErrors.startDate}
+                            helperText={formErrors.startDate}
                             InputLabelProps={{ shrink: true }}
                             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                         />
@@ -995,8 +1078,11 @@ const TimelinePage: React.FC = () => {
                             label="结束日期"
                             type="date"
                             fullWidth
+                            required
                             value={newGoal.endDate}
-                            onChange={(e) => setNewGoal({ ...newGoal, endDate: e.target.value })}
+                            onChange={(e) => handleInputChange('endDate', e.target.value)}
+                            error={!!formErrors.endDate}
+                            helperText={formErrors.endDate}
                             InputLabelProps={{ shrink: true }}
                             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                         />
@@ -1006,7 +1092,7 @@ const TimelinePage: React.FC = () => {
                         <Select
                             value={newGoal.type}
                             label="目标类型"
-                            onChange={(e) => setNewGoal({ ...newGoal, type: e.target.value as Goal['type'] })}
+                            onChange={(e) => handleInputChange('type', e.target.value)}
                             sx={{ borderRadius: '12px' }}
                         >
                             <MenuItem value="SHORT_TERM">短期目标（1-3个月）</MenuItem>
@@ -1017,23 +1103,42 @@ const TimelinePage: React.FC = () => {
                 </DialogContent>
                 <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
                     <Button 
-                        onClick={() => setAddDialogOpen(false)}
+                        onClick={handleCloseDialog}
                         sx={{ color: '#64748b', '&:hover': { backgroundColor: '#f1f5f9' } }}
                     >
                         取消
                     </Button>
-                    <Button 
-                        onClick={handleAddGoal} 
-                        variant="contained"
-                        sx={{
-                            backgroundColor: '#6366f1',
-                            borderRadius: '8px',
-                            px: 3,
-                            '&:hover': { backgroundColor: '#4f46e5' }
-                        }}
+                    <Tooltip 
+                        title={
+                            !newGoal.title && !newGoal.startDate && !newGoal.endDate 
+                                ? '请填写目标名称、开始日期和结束日期'
+                                : !newGoal.title 
+                                    ? '请填写目标名称'
+                                    : !newGoal.startDate 
+                                        ? '请选择开始日期'
+                                        : !newGoal.endDate 
+                                            ? '请选择结束日期'
+                                            : ''
+                        }
+                        disableHoverListener={!!newGoal.title && !!newGoal.startDate && !!newGoal.endDate}
                     >
-                        添加
-                    </Button>
+                        <span>
+                            <Button 
+                                onClick={handleAddGoal} 
+                                variant="contained"
+                                disabled={!newGoal.title || !newGoal.startDate || !newGoal.endDate}
+                                sx={{
+                                    backgroundColor: '#6366f1',
+                                    borderRadius: '8px',
+                                    px: 3,
+                                    '&:hover': { backgroundColor: '#4f46e5' },
+                                    '&:disabled': { backgroundColor: '#c7d2fe', color: '#94a3b8' }
+                                }}
+                            >
+                                添加
+                            </Button>
+                        </span>
+                    </Tooltip>
                 </DialogActions>
             </Dialog>
 
@@ -1257,6 +1362,19 @@ const TimelinePage: React.FC = () => {
                     )}
                 </DialogActions>
             </Dialog>
+
+            {/* 删除确认对话框 */}
+            <ConfirmDialog
+                open={confirmDialogOpen}
+                title="确认删除目标"
+                message={goalToDelete ? `确定要删除目标 "${goalToDelete.title}" 吗？此操作不可恢复。` : ''}
+                onConfirm={handleConfirmDelete}
+                onClose={() => {
+                    setConfirmDialogOpen(false)
+                    setGoalToDelete(null)
+                }}
+                type="delete"
+            />
         </Box>
     )
 }

@@ -29,6 +29,7 @@ public class DataExportImportServiceImpl implements DataExportImportService {
     private final TaskRepository taskRepository;
     private final SubtaskRepository subtaskRepository;
     private final GoalRepository goalRepository;
+    private final WeeklyScheduleEventRepository weeklyScheduleEventRepository;
     private final TaskMapper taskMapper;
     private final ModuleMapper moduleMapper;
 
@@ -62,6 +63,12 @@ public class DataExportImportServiceImpl implements DataExportImportService {
                 .map(this::goalToDTO)
                 .collect(Collectors.toList()));
 
+        // 导出所有周安排事件
+        List<WeeklyScheduleEvent> scheduleEvents = weeklyScheduleEventRepository.findAll();
+        exportData.setScheduleEvents(scheduleEvents.stream()
+                .map(WeeklyScheduleEventDTO::fromEntity)
+                .collect(Collectors.toList()));
+
         return exportData;
     }
 
@@ -81,6 +88,7 @@ public class DataExportImportServiceImpl implements DataExportImportService {
         goalRepository.deleteAll();
         taskRepository.deleteAll();
         moduleRepository.deleteAll();
+        weeklyScheduleEventRepository.deleteAll();
 
         // 2. 导入模块
         if (data.getModules() != null) {
@@ -186,6 +194,25 @@ public class DataExportImportServiceImpl implements DataExportImportService {
                 goalRepository.save(goal);
             }
         }
+
+        // 6. 导入周安排事件
+        if (data.getScheduleEvents() != null) {
+            for (WeeklyScheduleEventDTO eventDTO : data.getScheduleEvents()) {
+                WeeklyScheduleEvent event = eventDTO.toEntity();
+                event.setId(null); // 让数据库生成新 ID
+                resolveScheduleEventModule(event, eventDTO, moduleIdMap);
+                if (event.getCreatedAt() == null) {
+                    event.setCreatedAt(LocalDateTime.now());
+                }
+                if (event.getUpdatedAt() == null) {
+                    event.setUpdatedAt(LocalDateTime.now());
+                }
+                if (event.getColor() == null || event.getColor().isBlank()) {
+                    event.setColor("#6366f1");
+                }
+                weeklyScheduleEventRepository.save(event);
+            }
+        }
     }
 
     private GoalDTO goalToDTO(Goal goal) {
@@ -204,5 +231,51 @@ public class DataExportImportServiceImpl implements DataExportImportService {
         }
         
         return dto;
+    }
+
+    private void resolveScheduleEventModule(WeeklyScheduleEvent event, WeeklyScheduleEventDTO eventDTO, Map<String, String> moduleIdMap) {
+        String moduleId = eventDTO.getModuleId();
+        cn.domekisuzi.blog.model.Module module = null;
+
+        if (moduleId != null && !moduleId.isBlank()) {
+            String mappedModuleId = moduleIdMap.get(moduleId);
+            if (mappedModuleId != null) {
+                module = moduleRepository.findById(mappedModuleId).orElse(null);
+            }
+            if (module == null) {
+                module = moduleRepository.findById(moduleId).orElse(null);
+            }
+        }
+
+        if (module == null) {
+            String lookupName = chooseNonBlank(eventDTO.getModuleName(), eventDTO.getCategory());
+            if (lookupName != null) {
+                List<cn.domekisuzi.blog.model.Module> matchedModules = moduleRepository.findAllByName(lookupName);
+                if (!matchedModules.isEmpty()) {
+                    module = matchedModules.get(0);
+                }
+            }
+        }
+
+        if (module != null) {
+            event.setModuleId(module.getId());
+            event.setCategory(module.getName());
+            return;
+        }
+
+        event.setModuleId(null);
+        if (event.getCategory() == null || event.getCategory().isBlank()) {
+            event.setCategory("未分类");
+        }
+    }
+
+    private String chooseNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        if (second != null && !second.isBlank()) {
+            return second;
+        }
+        return null;
     }
 }

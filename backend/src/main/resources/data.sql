@@ -47,3 +47,25 @@ INSERT IGNORE INTO goal_tasks (goal_id, task_id) VALUES
 ('goal-001', 'task-004'),
 ('goal-002', 'task-005'),
 ('goal-002', 'task-006');
+
+-- =============================================
+-- 7. 周安排（Google 风格会议表）建表语句（本地 MySQL 可直接执行）
+-- =============================================
+CREATE TABLE IF NOT EXISTS weekly_schedule_events (
+    id VARCHAR(36) NOT NULL PRIMARY KEY,
+    title VARCHAR(120) NOT NULL,
+    category VARCHAR(80) NOT NULL,
+    module_id VARCHAR(36) NULL,
+    day_of_week TINYINT NOT NULL COMMENT '0=周一, 6=周日',
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    note VARCHAR(500),
+    color VARCHAR(24) NOT NULL DEFAULT '#6366f1',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_weekly_schedule_events_module FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE SET NULL,
+    KEY idx_weekly_schedule_events_day (day_of_week),
+    KEY idx_weekly_schedule_events_weekday_start (day_of_week, start_time),
+    KEY idx_weekly_schedule_events_category (category),
+    KEY idx_weekly_schedule_events_module (module_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

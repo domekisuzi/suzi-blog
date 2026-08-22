@@ -10,7 +10,8 @@ import {
   subtaskApi as localSubtaskApi,
   goalApi as localGoalApi,
   todoApi as localTodoApi,
-  milestoneApi as localMilestoneApi
+  milestoneApi as localMilestoneApi,
+  scheduleApi as localScheduleApi
 } from '../services/LocalStorageService'
 
 // 是否使用本地存储模式
@@ -176,6 +177,34 @@ export const apiAdapter = {
     delete: async (taskId: string, subtaskId: string) => {
       if (USE_LOCAL_STORAGE) { await localSubtaskApi.delete(taskId, subtaskId); return { data: { success: true } } }
       return api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`)
+    },
+  },
+
+  // Schedule APIs - 周安排
+    schedule: {
+    getAll: async () => {
+      if (USE_LOCAL_STORAGE) return { data: await localScheduleApi.getAll() }
+      return api.get('/schedule')
+    },
+    getByWeekday: async (dayOfWeek: number) => {
+      if (USE_LOCAL_STORAGE) return { data: await localScheduleApi.getByWeekday(dayOfWeek) }
+      return api.get(`/schedule?dayOfWeek=${dayOfWeek}`)
+    },
+    create: async (payload: any) => {
+      if (USE_LOCAL_STORAGE) return { data: await localScheduleApi.create(payload) }
+      return api.post('/schedule', payload)
+    },
+    update: async (id: string, payload: any) => {
+      if (USE_LOCAL_STORAGE) return { data: await localScheduleApi.update(id, payload) }
+      return api.put(`/schedule/${id}`, payload)
+    },
+    delete: async (id: string) => {
+      if (USE_LOCAL_STORAGE) { await localScheduleApi.delete(id); return { data: { success: true } } }
+      return api.delete(`/schedule/${id}`)
+    },
+    getUsageStats: async () => {
+      if (USE_LOCAL_STORAGE) return { data: await localScheduleApi.getStats() }
+      return api.get('/schedule/stats')
     },
   },
 }

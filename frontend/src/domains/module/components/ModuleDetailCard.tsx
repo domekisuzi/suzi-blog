@@ -1,6 +1,5 @@
 import React from 'react'
 import { Box, Typography, LinearProgress, IconButton } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import { Module } from '../model/module'
@@ -43,10 +42,11 @@ interface ModuleDetailProps {
     colorScheme?: ColorScheme
     onEdit?: (module: Module) => void
     onDelete?: (module: Module) => void
+    onOpenTasks?: (module: Module) => void
+    isOpening?: boolean
 }
 
-const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme, onEdit, onDelete }) => {
-    const navigate = useNavigate()
+const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme, onEdit, onDelete, onOpenTasks, isOpening = false }) => {
     const defaultColor = { bg: getModuleGradient(module.name), color: '#fff' }
     const colors = colorScheme || defaultColor
 
@@ -54,25 +54,45 @@ const ModuleDetailCard: React.FC<ModuleDetailProps> = ({ module, colorScheme, on
     const completedRate = module.completedRate || 0
     const icon = getModuleIcon(module.name)
 
+    const handleOpenTasks = (event: React.MouseEvent) => {
+        event.preventDefault()
+        const target = onOpenTasks || (() => {})
+        target(module)
+    }
+
     return (
         <Box
-            onClick={() => navigate(`/tasks?moduleId=${module.id}`)}
+            onClick={onOpenTasks ? handleOpenTasks : undefined}
             sx={{
                 position: 'relative',
                 borderRadius: '20px',
                 background: colors.bg,
                 padding: '24px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
+                transition: 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1), filter 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s',
                 height: '180px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 overflow: 'hidden',
+                opacity: isOpening ? 0.94 : 1,
                 '&:hover': {
                     transform: 'translateY(-4px)',
                     boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
                 },
+                ...(onOpenTasks ? {
+                    cursor: 'pointer',
+                    '&:active': {
+                        transform: 'translateY(-1px) scale(0.985)',
+                        filter: 'brightness(0.95)',
+                    },
+                    ...(isOpening ? {
+                        transform: 'scale(0.985)',
+                        filter: 'brightness(0.96)',
+                        boxShadow: '0 24px 50px rgba(0,0,0,0.22)',
+                    } : {}),
+                } : {
+                    cursor: 'default',
+                }),
             }}
         >
             {/* 装饰性圆形背景 */}

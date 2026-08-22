@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Box, Typography, Chip, TextField, InputAdornment, IconButton, Menu, MenuItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ViewModuleIcon from '@mui/icons-material/ViewModule'
@@ -12,6 +12,7 @@ import ConfirmDialog from '../../../components/ConfirmDialog'
 import { fetchModules, updateModule, deleteModule, createModule } from '../api/moduleApi'
 import { Module } from '../model/module'
 import { getAllTaskVos } from '../../task/api/taskApi'
+import { useNavigate } from 'react-router-dom'
 import { useLoading } from '../../../context/LoadingContext'
 
 type ViewMode = 'grid' | 'list'
@@ -43,6 +44,9 @@ const ModulePage: React.FC = () => {
     // 确认对话框状态
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     const [moduleToDelete, setModuleToDelete] = useState<Module | null>(null)
+    const navigate = useNavigate()
+    const [openingModuleId, setOpeningModuleId] = useState<string>('')
+    const openingTimerRef = useRef<number | null>(null)
 
     // 通知状态
     const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -221,6 +225,29 @@ const ModulePage: React.FC = () => {
         { bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', color: '#333' },
     ]
 
+    const openTaskList = (module: Module) => {
+        setOpeningModuleId(module.id)
+        if (openingTimerRef.current !== null) {
+            clearTimeout(openingTimerRef.current)
+        }
+        openingTimerRef.current = window.setTimeout(() => {
+            navigate(`/tasks?moduleId=${module.id}`, {
+                state: {
+                    focusedModuleId: module.id,
+                    focusedModuleName: module.name,
+                },
+            })
+        }, 220)
+    }
+
+    useEffect(() => {
+        return () => {
+            if (openingTimerRef.current !== null) {
+                clearTimeout(openingTimerRef.current)
+            }
+        }
+    }, [])
+
     return (
         <Box>
             {/* 页面标题和操作栏 */}
@@ -374,6 +401,8 @@ const ModulePage: React.FC = () => {
                             colorScheme={moduleColors[index % moduleColors.length]}
                             onEdit={handleEditModule}
                             onDelete={handleDeleteModule}
+                            onOpenTasks={openTaskList}
+                            isOpening={openingModuleId === module.id}
                         />
                     ))}
                 </Box>
@@ -389,12 +418,14 @@ const ModulePage: React.FC = () => {
                                 backgroundColor: '#f8fafc',
                                 borderRadius: '12px',
                                 transition: 'all 0.2s ease',
-                                '&:hover': {
-                                    backgroundColor: '#f1f5f9',
-                                    transform: 'translateX(4px)',
+                            transform: openingModuleId === module.id ? 'translateX(6px) scale(0.99)' : 'none',
+                            cursor: 'pointer',
+                            '&:hover': {
+                                    backgroundColor: openingModuleId === module.id ? '#e2e8f0' : '#f1f5f9',
+                                    transform: openingModuleId === module.id ? 'translateX(6px) scale(0.99)' : 'translateX(4px)',
                                 },
-                                cursor: 'pointer',
                             }}
+                            onClick={() => openTaskList(module)}
                         >
                             <Box sx={{
                                 width: 48,

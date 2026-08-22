@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useParams, useSearchParams } from 'react-router-dom'
 import {
     Box,
     Typography,
@@ -18,6 +18,7 @@ import {
     Pagination,
     Snackbar,
     Alert,
+    Fade,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import SortIcon from '@mui/icons-material/Sort'
@@ -41,8 +42,14 @@ const ITEMS_PER_PAGE = 12
 const TaskPage: React.FC = () => {
     const { setLoading } = useLoading()
     const [searchParams] = useSearchParams()
-    const moduleIdFromUrl = searchParams.get('moduleId')
-    const moduleNameFromUrl = searchParams.get('moduleName')
+    const { moduleId: moduleIdFromPath } = useParams()
+    const location = useLocation()
+    const moduleIdFromUrl = searchParams.get('moduleId') || moduleIdFromPath || ''
+    const locationState = location.state as
+        | { focusedModuleId?: string; focusedModuleName?: string }
+        | undefined
+    const focusedModuleId = locationState?.focusedModuleId || ''
+    const focusedModuleName = locationState?.focusedModuleName || ''
     
     // 数据状态
     const [detailTaskVoList, setDetailTaskVoList] = useState<TaskDetailVo[]>([])
@@ -55,6 +62,7 @@ const TaskPage: React.FC = () => {
     const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null)
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
     const [filterModule, setFilterModule] = useState<string>(moduleIdFromUrl || 'all')
+    const [focusedTipOpen, setFocusedTipOpen] = useState(false)
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null)
     const [currentPage, setCurrentPage] = useState(1)
     
@@ -83,10 +91,13 @@ const TaskPage: React.FC = () => {
 
     // 当URL参数变化时更新筛选
     useEffect(() => {
-        if (moduleIdFromUrl) {
-            setFilterModule(moduleIdFromUrl)
-        }
-    }, [moduleIdFromUrl])
+        const targetModuleId = moduleIdFromUrl || focusedModuleId
+        if (!targetModuleId) return
+        setFilterModule(targetModuleId)
+        setFocusedTipOpen(true)
+        const timeout = setTimeout(() => setFocusedTipOpen(false), 2200)
+        return () => clearTimeout(timeout)
+    }, [moduleIdFromUrl, focusedModuleId])
 
     // 筛选和排序
     useEffect(() => {
@@ -242,6 +253,19 @@ const TaskPage: React.FC = () => {
                     <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
                         共 {filteredTasks.length} 个任务
                     </Typography>
+                    <Fade in={focusedTipOpen}>
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                mt: 1,
+                                color: '#7c3aed',
+                                display: focusedTipOpen ? 'block' : 'none',
+                                fontWeight: 600,
+                            }}
+                        >
+                            已聚焦到模块：{focusedModuleName || moduleList.find((item) => item.id === filterModule)?.name || '已选模块'}
+                        </Typography>
+                    </Fade>
                 </Box>
                 <IconButton 
                     onClick={() => setCreateTaskOpen(true)}

@@ -67,6 +67,7 @@
 - [2026-03-28 22:15] TimelinePage 修复导航按钮功能（今天/左移/右移），使用 viewStartDate 控制时间线显示
 - [2026-03-29 14:44] TimelinePage 修复折叠布局：未折叠时时间线固定280px高度（减小挤压），折叠时充满整个卡片
 - [2026-03-29 14:44] TimelinePage 给绑定任务列表和长期目标框添加滚动条（overflow: auto + maxHeight: 100%）
+- [2026-03-30 19:53] TimelinePage 将 goal 删除改为使用 ConfirmDialog 组件，替代浏览器默认的 window.confirm
 
 
 # Cline 更新记录

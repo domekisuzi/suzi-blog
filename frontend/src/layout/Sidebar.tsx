@@ -12,11 +12,10 @@ import AddIcon from '@mui/icons-material/Add'
 import { ReactComponent as BookListIcon } from '../asserts/icon/booklist.svg'
 import { ReactComponent as ModuleIcon } from '../asserts/icon/module.svg'
 import { ReactComponent as TaskIcon } from '../asserts/icon/task.svg'
-import { ReactComponent as SubTaskIcon } from '../asserts/icon/subtask.svg'
-import { ReactComponent as StatisticsIcon } from '../asserts/icon/statistics.svg'
 import { ReactComponent as ProjectIcon } from '../asserts/icon/project.svg'
 import { ReactComponent as TimelineIcon } from '../asserts/icon/timeline.svg'
 import StorageIcon from '@mui/icons-material/Storage'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 interface SidebarProps {
@@ -29,14 +28,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onQuickAdd }) => {
     const location = useLocation()
 
     const menuItems = [
-        { path: '/books', icon: BookListIcon, label: 'Book List' },
+        { path: '/books', icon: BookListIcon, label: '书单' },
         { path: '/timeline', icon: TimelineIcon, label: 'Timeline' },
+        { path: '/schedule', icon: CalendarMonthIcon, label: 'Google 会议表' },
     ]
 
     const projectItems = [
         { path: '/modules', icon: ModuleIcon, label: 'Module' },
         { path: '/tasks', icon: TaskIcon, label: 'Task' },
-        { path: '/subtasks', icon: SubTaskIcon, label: 'Subtask' },
     ]
 
     const isActive = (path: string) => location.pathname === path
@@ -63,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onQuickAdd }) => {
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
             }}>
                 <IconButton 
-                    onClick={() => navigate('/statistics')}
+                    onClick={() => navigate('/')}
                     sx={{
                         width: 60,
                         height: 60,
@@ -75,16 +74,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onQuickAdd }) => {
                         transition: 'all 0.2s ease',
                     }}
                 >
-                    <SvgIcon 
-                        sx={{ 
-                            width: 36, 
-                            height: 36, 
-                            color: '#a5b4fc',
-                        }} 
-                        component={StatisticsIcon} 
-                        inheritViewBox 
-                    />
-                </IconButton>
+                            <SvgIcon
+                                sx={{ 
+                                    width: 36, 
+                                    height: 36, 
+                                    color: '#a5b4fc',
+                                }} 
+                            component={BookListIcon} 
+                            inheritViewBox 
+                        />
+                    </IconButton>
             </Box>
 
             {/* 菜单列表 */}

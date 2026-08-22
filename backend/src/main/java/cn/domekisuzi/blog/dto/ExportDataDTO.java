@@ -13,4 +13,5 @@ public class ExportDataDTO {
     private List<TaskDTO> tasks;
     private List<SubtaskDTO> subtasks;
     private List<GoalDTO> goals;
+    private List<WeeklyScheduleEventDTO> scheduleEvents;
 }

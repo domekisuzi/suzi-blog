@@ -5,6 +5,7 @@
 
 import { Module, ModuleDetailVo } from '../../domains/module/model/module'
 import { Subtask, Task, TaskDetailVo, Goal, Milestone, Todo } from '../../domains/task/model/taskTypes'
+import { WeeklyScheduleEvent, WeeklyScheduleUsageStat } from '../../domains/schedule/model/scheduleEvent'
 
 const STORAGE_KEYS = {
   MODULES: 'suzi_blog_modules',
@@ -13,6 +14,7 @@ const STORAGE_KEYS = {
   GOALS: 'suzi_blog_goals',
   MILESTONES: 'suzi_blog_milestones',
   TODOS: 'suzi_blog_todos',
+  SCHEDULE_EVENTS: 'suzi_blog_schedule_events',
 }
 
 // ============ 工具函数 ============
@@ -23,6 +25,12 @@ const generateId = (): string => {
 
 const getCurrentTime = (): string => {
   return new Date().toISOString()
+}
+
+const timeTextToMinutes = (timeText: string): number => {
+  if (!timeText || !timeText.includes(':')) return 0
+  const [h = '0', m = '0'] = timeText.split(':')
+  return Number(h) * 60 + Number(m)
 }
 
 const getFromStorage = <T>(key: string): T[] => {
@@ -303,6 +311,81 @@ export const subtaskApi = {
   delete: async (taskId: string, subtaskId: string): Promise<void> => {
     const subtasks = getFromStorage<Subtask>(STORAGE_KEYS.SUBTASKS)
     saveToStorage(STORAGE_KEYS.SUBTASKS, subtasks.filter(s => !(s.id === subtaskId && s.taskId === taskId)))
+  },
+}
+
+// ============ Week Schedule 相关 ============
+
+export const scheduleApi = {
+  getAll: async (): Promise<WeeklyScheduleEvent[]> => getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS),
+
+  getByWeekday: async (dayOfWeek: number): Promise<WeeklyScheduleEvent[]> => {
+    const events = getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS)
+    return events.filter((item) => item.dayOfWeek === dayOfWeek)
+  },
+
+  create: async (payload: Omit<WeeklyScheduleEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<WeeklyScheduleEvent> => {
+    const events = getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS)
+    const now = new Date().toISOString()
+    const newEvent: WeeklyScheduleEvent = {
+      id: generateId(),
+      ...payload,
+      createdAt: now,
+      updatedAt: now,
+    }
+    events.push(newEvent)
+    saveToStorage(STORAGE_KEYS.SCHEDULE_EVENTS, events)
+    return newEvent
+  },
+
+  update: async (id: string, updates: Partial<WeeklyScheduleEvent>): Promise<WeeklyScheduleEvent> => {
+    const events = getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS)
+    const index = events.findIndex((item) => item.id === id)
+    if (index === -1) throw new Error('Schedule event not found')
+    events[index] = {
+      ...events[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
+    saveToStorage(STORAGE_KEYS.SCHEDULE_EVENTS, events)
+    return events[index]
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const events = getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS)
+    saveToStorage(STORAGE_KEYS.SCHEDULE_EVENTS, events.filter((item) => item.id !== id))
+  },
+  getStats: async (): Promise<WeeklyScheduleUsageStat[]> => {
+    const events = getFromStorage<WeeklyScheduleEvent>(STORAGE_KEYS.SCHEDULE_EVENTS)
+    const grouped = new Map<string, WeeklyScheduleUsageStat>()
+
+    events.forEach((event) => {
+      const moduleId = event.moduleId || ''
+      const moduleName = (event.moduleName || event.category || '未关联').trim()
+      const key = `${moduleId}||${moduleName}`
+      const minutes = Math.max(timeTextToMinutes(event.endTime) - timeTextToMinutes(event.startTime), 0)
+      const current = grouped.get(key)
+
+      if (current) {
+        current.totalMinutes += minutes
+        current.totalEvents += 1
+      } else {
+        grouped.set(key, {
+          moduleId,
+          moduleName: moduleName || '未关联',
+          totalMinutes: minutes,
+          totalEvents: 1,
+          totalHours: 0,
+        })
+      }
+    })
+
+    const stats = Array.from(grouped.values())
+    for (const item of stats) {
+      item.totalHours = Math.round((item.totalMinutes / 60) * 100) / 100
+    }
+
+    return stats.sort((a, b) => b.totalMinutes - a.totalMinutes)
   },
 }
 
