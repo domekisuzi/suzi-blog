@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -196,11 +197,15 @@ public class DataExportImportServiceImpl implements DataExportImportService {
         }
 
         // 6. 导入周安排事件
-        if (data.getScheduleEvents() != null) {
+                if (data.getScheduleEvents() != null) {
             for (WeeklyScheduleEventDTO eventDTO : data.getScheduleEvents()) {
                 WeeklyScheduleEvent event = eventDTO.toEntity();
                 event.setId(null); // 让数据库生成新 ID
+                event.setEventDate(resolveDateFromEventData(eventDTO));
                 resolveScheduleEventModule(event, eventDTO, moduleIdMap);
+                if (event.getEventDate() != null) {
+                    event.setDayOfWeek(calculateDayOfWeek(event.getEventDate()));
+                }
                 if (event.getCreatedAt() == null) {
                     event.setCreatedAt(LocalDateTime.now());
                 }
@@ -277,5 +282,35 @@ public class DataExportImportServiceImpl implements DataExportImportService {
             return second;
         }
         return null;
+    }
+
+    private LocalDate resolveDateFromEventData(WeeklyScheduleEventDTO eventDTO) {
+        if (eventDTO.getEventDate() != null && !eventDTO.getEventDate().isBlank()) {
+            return LocalDate.parse(eventDTO.getEventDate());
+        }
+        if (eventDTO.getCreatedAt() != null && !eventDTO.getCreatedAt().isBlank()) {
+            return parseCreatedDate(eventDTO.getCreatedAt());
+        }
+        if (eventDTO.getDayOfWeek() == null) {
+            return LocalDate.now();
+        }
+        return LocalDate.now().with(java.time.temporal.TemporalAdjusters.nextOrSame(
+                java.time.DayOfWeek.of(((eventDTO.getDayOfWeek() % 7) + 1))
+        ));
+    }
+
+    private int calculateDayOfWeek(LocalDate date) {
+        return (date.getDayOfWeek().getValue() + 6) % 7;
+    }
+
+    private LocalDate parseCreatedDate(String createdAt) {
+        if (createdAt == null || createdAt.isBlank()) {
+            return null;
+        }
+        String text = createdAt.trim();
+        if (text.length() >= 10) {
+            return LocalDate.parse(text.substring(0, 10));
+        }
+        return LocalDate.parse(text);
     }
 }

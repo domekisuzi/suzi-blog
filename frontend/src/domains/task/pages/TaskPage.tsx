@@ -578,7 +578,10 @@ const TaskPage: React.FC = () => {
                     ✨ 创建任务
                 </DialogTitle>
                 <DialogContent sx={{ py: 3 }}>
-                    <CreateTaskCard onSubmit={handleCreateTaskSubmit} />
+                    <CreateTaskCard
+                        onSubmit={handleCreateTaskSubmit}
+                        defaultModuleName={filterModule === 'all' ? '' : moduleList.find((m) => m.id === filterModule)?.name ?? ''}
+                    />
                 </DialogContent>
                 <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
                     <Button 
@@ -629,7 +632,7 @@ const TaskPage: React.FC = () => {
                     📋 任务详情
                 </DialogTitle>
                 <DialogContent dividers sx={{ py: 3 }}>
-                    {nowDetailTask && <TaskDetailCard task={nowDetailTask} isEditing={false} />}
+                    {nowDetailTask && <TaskDetailCard task={nowDetailTask} isEditing={false} moduleList={moduleList} />}
                 </DialogContent>
                 <DialogActions sx={{ px: 3, py: 2 }}>
                     <Button 
@@ -668,7 +671,7 @@ const TaskPage: React.FC = () => {
                 </DialogTitle>
                 <DialogContent dividers sx={{ py: 3 }}>
                     {nowDetailTask && (
-                        <TaskDetailCard task={nowDetailTask} isEditing={true} onChange={setNowDetailTask} />
+                        <TaskDetailCard task={nowDetailTask} isEditing={true} moduleList={moduleList} onChange={setNowDetailTask} />
                     )}
                 </DialogContent>
                 <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>

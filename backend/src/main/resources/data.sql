@@ -53,6 +53,7 @@ INSERT IGNORE INTO goal_tasks (goal_id, task_id) VALUES
 -- =============================================
 CREATE TABLE IF NOT EXISTS weekly_schedule_events (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
+    event_date DATE NULL,
     title VARCHAR(120) NOT NULL,
     category VARCHAR(80) NOT NULL,
     module_id VARCHAR(36) NULL,
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS weekly_schedule_events (
     CONSTRAINT fk_weekly_schedule_events_module FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE SET NULL,
     KEY idx_weekly_schedule_events_day (day_of_week),
     KEY idx_weekly_schedule_events_weekday_start (day_of_week, start_time),
+    KEY idx_weekly_schedule_events_event_date (event_date),
     KEY idx_weekly_schedule_events_category (category),
     KEY idx_weekly_schedule_events_module (module_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

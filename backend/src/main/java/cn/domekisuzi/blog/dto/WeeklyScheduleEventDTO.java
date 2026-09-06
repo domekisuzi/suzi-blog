@@ -5,14 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.util.regex.Pattern;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class WeeklyScheduleEventDTO extends BaseDTO {
     private String id;
+    private String eventDate;
     private String title;
     private String category;
     private String moduleId;
@@ -32,6 +36,7 @@ public class WeeklyScheduleEventDTO extends BaseDTO {
 
         return new WeeklyScheduleEventDTO(
                 entity.getId(),
+                entity.getEventDate() != null ? entity.getEventDate().toString() : null,
                 entity.getTitle(),
                 entity.getCategory(),
                 entity.getModuleId(),
@@ -49,8 +54,14 @@ public class WeeklyScheduleEventDTO extends BaseDTO {
     public WeeklyScheduleEvent toEntity() {
         WeeklyScheduleEvent entity = new WeeklyScheduleEvent();
         entity.setId(this.id);
-        entity.setTitle(this.title);
+        LocalDate parsedEventDate = parseDate(this.eventDate);
+        if (parsedEventDate != null) {
+            entity.setEventDate(parsedEventDate);
+        }
         entity.setCategory(this.category);
+        if ((entity.getCategory() == null || entity.getCategory().isBlank()) && this.moduleName != null && !this.moduleName.isBlank()) {
+            entity.setCategory(this.moduleName);
+        }
         entity.setModuleId(this.moduleId);
         entity.setDayOfWeek(this.dayOfWeek);
         entity.setStartTime(parseTime(this.startTime));
@@ -68,14 +79,82 @@ public class WeeklyScheduleEventDTO extends BaseDTO {
         return entity;
     }
 
+    private LocalDate parseDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        String text = value.trim();
+        int tIndex = text.indexOf('T');
+        if (tIndex > 0) {
+            text = text.substring(0, tIndex);
+        }
+        if (text.length() > 10) {
+            text = text.substring(0, 10);
+        }
+        try {
+            return LocalDate.parse(text);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("eventDate 格式无效，请使用 yyyy-MM-dd");
+        }
+    }
+
     private LocalTime parseTime(String timeText) {
         if (timeText == null || timeText.isBlank()) {
             return null;
         }
-
-        if (timeText.length() > 5) {
-            return LocalTime.parse(timeText.substring(0, 5));
+        String normalized = normalizeTimeText(timeText);
+        if (normalized == null) {
+            return null;
         }
-        return LocalTime.parse(timeText);
+        String[] parts = normalized.split(":");
+        if (parts.length < 2) {
+            return null;
+        }
+        try {
+            int hour = Integer.parseInt(parts[0]);
+            int minute = Integer.parseInt(parts[1]);
+            if (hour < 0 || hour > 24 || minute < 0 || minute > 59) {
+                return null;
+            }
+            if (hour == 24 && minute == 0) {
+                return LocalTime.MIDNIGHT;
+            }
+            return LocalTime.of(hour, minute);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String normalizeTimeText(String value) {
+        String trimmed = value.trim().replace('：', ':');
+        int tIndex = trimmed.lastIndexOf('T');
+        if (tIndex >= 0 && tIndex < trimmed.length() - 1) {
+            trimmed = trimmed.substring(tIndex + 1);
+        }
+        if (trimmed.contains(" ")) {
+            String[] parts = trimmed.trim().split("\\s+");
+            trimmed = parts[parts.length - 1];
+        }
+
+        java.util.regex.Matcher matcher = Pattern
+                .compile("(\\d{1,2}):(\\d{1,2})")
+                .matcher(trimmed);
+        if (!matcher.find()) {
+            return null;
+        }
+        try {
+            int hour = Integer.parseInt(matcher.group(1));
+            int minute = Integer.parseInt(matcher.group(2));
+            if (hour == 24 && minute == 0) {
+                return "24:00";
+            }
+            if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                return String.format("%02d:%02d", hour, minute);
+            }
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        return null;
     }
 }

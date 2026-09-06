@@ -14,11 +14,14 @@ import { useLoading } from '../../../context/LoadingContext';
 
 interface Props {
     onSubmit: (task: Task) => void
+    defaultModuleName?: string
 }
 
-export default function CreateTaskCard({ onSubmit }: Props) {
+export default function CreateTaskCard({ onSubmit, defaultModuleName }: Props) {
     const [dueDate, setDueDate] = React.useState<string | null>(null);
-    const [moduleList, setModuleList] = React.useState<Module[] | null>(null);
+    const [moduleList, setModuleList] = React.useState<Module[]>([]);
+    const [selectedModuleName, setSelectedModuleName] = React.useState<string>('');
+    const [loadError, setLoadError] = React.useState<string>('');
     const { setLoading } = useLoading()
     dayjs.extend(utc)
 
@@ -26,11 +29,20 @@ export default function CreateTaskCard({ onSubmit }: Props) {
         setLoading(true)
         fetchModules().then(res => {
             setModuleList(res)
+            const fallback = defaultModuleName || (res.length > 0 ? res[0].name : '')
+            setSelectedModuleName(fallback)
             setLoading(false)
-        }).catch(error => console.log(error))
-    }, [])
+            setLoadError('')
+        }).catch(error => {
+            console.log(error)
+            setModuleList([])
+            setSelectedModuleName(defaultModuleName || '')
+            setLoadError('模块加载失败，先提交默认分类')
+            setLoading(false)
+        })
+    }, [defaultModuleName])
 
-    return moduleList && (
+    return (
         <Box
             id="createTaskForm"
             component="form"
@@ -67,9 +79,9 @@ export default function CreateTaskCard({ onSubmit }: Props) {
                 gap: 2.5,
             }}
         >
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b', mb: 1 }}>
-                📌 基本信息
-            </Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b', mb: 1 }}>
+                    📌 基本信息
+                </Typography>
 
             <TextField
                 name="title"
@@ -114,7 +126,8 @@ export default function CreateTaskCard({ onSubmit }: Props) {
                 name="moduleId"
                 select
                 label="模块（可选）"
-                defaultValue={moduleList ? moduleList[0].name : ''}
+                value={selectedModuleName}
+                onChange={(e) => setSelectedModuleName(e.target.value as string)}
                 sx={{
                     '& .MuiOutlinedInput-root': {
                         borderRadius: '12px',
@@ -124,13 +137,16 @@ export default function CreateTaskCard({ onSubmit }: Props) {
                     },
                     '& .MuiInputLabel-root.Mui-focused': { color: '#6366f1' },
                 }}
+                helperText={loadError || undefined}
+                error={!!loadError}
             >
+                <MenuItem value="">无</MenuItem>
                 {moduleList.map(({ id, name }) => (
                     <MenuItem key={id} value={name} sx={{ borderRadius: '8px', mx: 1, my: 0.5 }}>
                         {name}
                     </MenuItem>
-                ))}
-            </TextField>
+                    ))}
+                </TextField>
 
             <TextField
                 name="taskPriority"

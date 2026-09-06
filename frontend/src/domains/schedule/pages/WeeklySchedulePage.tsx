@@ -22,6 +22,8 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import { useLoading } from '../../../context/LoadingContext'
@@ -45,35 +47,142 @@ import {
 
 const HOUR_HEIGHT = 52
 const HOUR_COUNT = 24
-const TOTAL_HEIGHT = 52 * HOUR_COUNT
+const TOTAL_HEIGHT = HOUR_HEIGHT * HOUR_COUNT
+const PIXELS_PER_MINUTE = HOUR_HEIGHT / 60
 const WEEK_START = 0
+const MINUTES_PER_DAY = HOUR_COUNT * 60
+
+const formatDateInputValue = (date: Date): string => date.toISOString().slice(0, 10)
+const parseDateInputValue = (value: string): Date => {
+    const [year, month, day] = value.split('-').map(Number)
+    if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+        return new Date()
+    }
+    return new Date(year, month - 1, day)
+}
+const formatDateLabel = (date: Date): string =>
+    `${date.getMonth() + 1}/${date.getDate()}`
+const toWeekdayIndex = (dateStr: string): number => {
+    if (!dateStr) {
+        return WEEK_START
+    }
+    const date = parseDateInputValue(dateStr)
+    const jsDay = date.getDay()
+    return (jsDay + 6) % 7
+}
+const pickDateFromEvent = (event: WeeklyScheduleEvent): string => {
+    if (event.eventDate) {
+        return event.eventDate.split('T')[0]
+    }
+    return ''
+}
+const pickEventDateForWeek = (event: WeeklyScheduleEvent, weekDates: Date[]) => {
+    if (!event) {
+        return ''
+    }
+    const rawDate = pickDateFromEvent(event)
+    if (rawDate) {
+        return rawDate
+    }
+    if (event.dayOfWeek == null) {
+        return ''
+    }
+    const idx = ((event.dayOfWeek % 7) + 7) % 7
+    return weekDates[idx] ? formatDateInputValue(weekDates[idx]) : ''
+}
+const isWeekMatch = (dateText: string, weekDates: Date[]): boolean => {
+    return weekDates.some((date) => formatDateInputValue(date) === dateText)
+}
+
+const normalizeTimeText = (time: string): string | null => {
+    const trimmed = (time || '').trim()
+    if (!trimmed) {
+        return null
+    }
+    let candidate = trimmed.replace(/：/g, ':')
+    const tIndex = candidate.lastIndexOf('T')
+    if (tIndex >= 0) {
+        candidate = candidate.slice(tIndex + 1)
+    }
+    if (candidate.includes(' ')) {
+        const chunks = candidate.trim().split(/\s+/)
+        candidate = chunks[chunks.length - 1]
+    }
+
+    const match = candidate.match(/(\d{1,2}):(\d{1,2})/)
+    if (!match) {
+        return null
+    }
+
+    const hour = Number.parseInt(match[1], 10)
+    const minute = Number.parseInt(match[2], 10)
+    if (hour === 24 && minute === 0) {
+        return '24:00'
+    }
+    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+    }
+
+    return null
+}
 
 const toMinutes = (time: string): number => {
-    if (!time) return 0
-    const [hours, minutes] = time.split(':').map(Number)
-    return (Number.isNaN(hours) ? 0 : hours) * 60 + (Number.isNaN(minutes) ? 0 : minutes)
+    const normalized = normalizeTimeText(time)
+    if (!normalized) {
+        return -1
+    }
+    const [hours, minutes] = normalized.split(':').map((item) => Number.parseInt(item, 10))
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+        return -1
+    }
+    if (hours === 24 && minutes === 0) {
+        return MINUTES_PER_DAY
+    }
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        return -1
+    }
+    return hours * 60 + minutes
+}
+
+const calculateMinutesSpan = (startTime: string, endTime: string): number => {
+    const start = toMinutes(startTime)
+    const end = toMinutes(endTime)
+    if (start < 0 || end < 0 || start === end) {
+        return 0
+    }
+    const isOverMidnight = end <= start
+    const span = isOverMidnight ? (MINUTES_PER_DAY - start) + end : end - start
+    if (!isOverMidnight) {
+        const startMinute = start % 60
+        const endMinute = end % 60
+        const sameHour = Math.floor(start / 60) === Math.floor(end / 60)
+        if (sameHour && endMinute === 59) {
+            return Math.min(span + 1, MINUTES_PER_DAY - start)
+        }
+    }
+    return span
 }
 
 const isValidTimeRange = (startTime: string, endTime: string): boolean => {
-    const start = toMinutes(startTime)
-    const end = toMinutes(endTime)
-    return start >= 0 && end >= 0 && start < end
+    return calculateMinutesSpan(startTime, endTime) > 0
 }
 
 const toPixels = (time: string): number => {
-    return (toMinutes(time) / 60) * HOUR_HEIGHT
+    return toMinutes(time) * PIXELS_PER_MINUTE
 }
 
 const formatHours = (hour: number) => String(hour).padStart(2, '0') + ':00'
-const TIME_MARKS = Array.from({ length: HOUR_COUNT }, (_, idx) => formatHours(idx))
+const TIME_MARKS = Array.from({ length: HOUR_COUNT + 1 }, (_, idx) => formatHours(idx))
 
 const eventTop = (time: string) => toPixels(time)
 const eventHeight = (startTime: string, endTime: string) => {
-    const height = toPixels(endTime) - toPixels(startTime)
+    const spanMinutes = calculateMinutesSpan(startTime, endTime)
+    const height = spanMinutes * PIXELS_PER_MINUTE
     return Math.max(height, 36)
 }
 
 const emptyForm: WeeklyScheduleEventFormData = {
+    eventDate: formatDateInputValue(new Date()),
     title: '',
     category: '',
     moduleId: '',
@@ -98,6 +207,15 @@ const resolveInitialModuleId = (modules: Module[]) => {
     return modules[0]?.id || ''
 }
 
+const formatWeekRange = (weekDates: Date[]): string => {
+    if (weekDates.length === 0) {
+        return ''
+    }
+    const start = weekDates[0]
+    const end = weekDates[weekDates.length - 1]
+    return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`
+}
+
 const WeeklySchedulePage: React.FC = () => {
     const { setLoading } = useLoading()
     const { showSuccess, showError, showWarning } = useNotification()
@@ -112,6 +230,14 @@ const WeeklySchedulePage: React.FC = () => {
     const [deleteTarget, setDeleteTarget] = useState<WeeklyScheduleEvent | null>(null)
     const [form, setForm] = useState<WeeklyScheduleEventFormData>(emptyForm)
     const [hasLocalError, setHasLocalError] = useState('')
+    const [weekStart, setWeekStart] = useState(() => {
+        const now = new Date()
+        const monday = new Date(now)
+        monday.setHours(0, 0, 0, 0)
+        const jsDay = monday.getDay()
+        monday.setDate(monday.getDate() - ((jsDay + 6) % 7))
+        return monday
+    })
 
     const moduleMap = useMemo(() => {
         const map = new Map<string, Module>()
@@ -130,6 +256,43 @@ const WeeklySchedulePage: React.FC = () => {
         options.sort((a, b) => a.name.localeCompare(b.name))
         return [{ id: 'all', name: '全部模块' }, ...options]
     }, [modules])
+
+    const weekDates = useMemo(() => {
+        return Array.from({ length: 7 }, (_, idx) => {
+            const date = new Date(weekStart)
+            date.setDate(weekStart.getDate() + idx)
+            return date
+        })
+    }, [weekStart])
+
+    const jumpWeek = (offset: number) => {
+        setWeekStart((prev) => {
+            const next = new Date(prev)
+            next.setDate(prev.getDate() + 7 * offset)
+            return next
+        })
+    }
+
+    const resetToThisWeek = () => {
+        const now = new Date()
+        const monday = new Date(now)
+        monday.setHours(0, 0, 0, 0)
+        const jsDay = monday.getDay()
+        monday.setDate(monday.getDate() - ((jsDay + 6) % 7))
+        setWeekStart(monday)
+    }
+
+    const jumpToDate = (dateText: string) => {
+        if (!dateText) {
+            return
+        }
+        const selected = parseDateInputValue(dateText)
+        const monday = new Date(selected)
+        monday.setHours(0, 0, 0, 0)
+        const jsDay = monday.getDay()
+        monday.setDate(monday.getDate() - ((jsDay + 6) % 7))
+        setWeekStart(monday)
+    }
 
     const loadScheduleData = async () => {
         setLoading(true)
@@ -175,29 +338,45 @@ const WeeklySchedulePage: React.FC = () => {
     const filteredEvents = useMemo(() => {
         return events
             .filter((item) => moduleFilter === 'all' || item.moduleId === moduleFilter)
+            .filter((item) => {
+                const eventDate = pickEventDateForWeek(item, weekDates)
+                if (!eventDate) {
+                    return false
+                }
+                return isWeekMatch(eventDate, weekDates)
+            })
             .sort((a, b) => (a.dayOfWeek - b.dayOfWeek) || (toMinutes(a.startTime) - toMinutes(b.startTime)))
-    }, [events, moduleFilter])
+    }, [events, moduleFilter, weekDates])
 
     const eventsByDay = useMemo(() => {
         const buckets = Array.from({ length: 7 }, () => [] as WeeklyScheduleEvent[])
+        const dateIndexMap = new Map<string, number>()
+        weekDates.forEach((date, idx) => {
+            dateIndexMap.set(formatDateInputValue(date), idx)
+        })
         for (const item of filteredEvents) {
-            const day = item.dayOfWeek
-            if (day < 0 || day > 6) continue
+            const eventDate = pickEventDateForWeek(item, weekDates)
+            const day = dateIndexMap.get(eventDate)
+            if (day === undefined) {
+                continue
+            }
             buckets[day].push(item)
         }
-        return buckets
-    }, [filteredEvents])
+        return buckets.map((items) => items.sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime)))
+    }, [filteredEvents, weekDates])
 
     const totalMinutes = useMemo(() => stats.reduce((sum, item) => sum + item.totalMinutes, 0), [stats])
 
     const openCreateDialog = () => {
         setEditingEvent(null)
-        const defaultModule = resolveInitialModuleId(modules)
-            setForm({
-                ...emptyForm,
-                category: defaultModule ? findModuleNameById(modules, defaultModule) : '',
-                moduleId: defaultModule,
-            dayOfWeek: WEEK_START,
+        const defaultModule = moduleFilter !== 'all' ? moduleFilter : resolveInitialModuleId(modules)
+        const defaultDate = formatDateInputValue(weekDates[WEEK_START] || new Date())
+        setForm({
+            ...emptyForm,
+            category: defaultModule ? findModuleNameById(modules, defaultModule) : '',
+            moduleId: defaultModule,
+            eventDate: defaultDate,
+            dayOfWeek: toWeekdayIndex(defaultDate),
         })
         setHasLocalError('')
         setIsDialogOpen(true)
@@ -208,12 +387,15 @@ const WeeklySchedulePage: React.FC = () => {
             ? event.moduleId
             : resolveInitialModuleId(modules)
         const resolvedModuleName = moduleId ? findModuleNameById(modules, moduleId) : ''
+        const eventDate = pickEventDateForWeek(event, weekDates)
+        const resolvedDate = eventDate || formatDateInputValue(weekDates[event.dayOfWeek] || new Date())
         setEditingEvent(event)
         setForm({
+            eventDate: resolvedDate,
             title: event.title,
             category: resolvedModuleName || event.category || '未关联',
             moduleId,
-            dayOfWeek: event.dayOfWeek,
+            dayOfWeek: toWeekdayIndex(resolvedDate),
             startTime: event.startTime,
             endTime: event.endTime,
             note: event.note || '',
@@ -238,12 +420,16 @@ const WeeklySchedulePage: React.FC = () => {
             showWarning('请选择模块（分类）')
             return
         }
+        if (!form.eventDate) {
+            showWarning('请选择日期')
+            return
+        }
         if (form.dayOfWeek < 0 || form.dayOfWeek > 6) {
             showWarning('请选择正确的星期')
             return
         }
-        if (toMinutes(form.startTime) >= toMinutes(form.endTime)) {
-            showWarning('结束时间必须晚于开始时间')
+        if (!isValidTimeRange(form.startTime, form.endTime)) {
+            showWarning('结束时间不能与开始时间相同')
             return
         }
 
@@ -251,6 +437,8 @@ const WeeklySchedulePage: React.FC = () => {
         try {
             const payload = {
                 ...form,
+                dayOfWeek: toWeekdayIndex(form.eventDate),
+                eventDate: form.eventDate,
                 category: selectedModule.name,
                 color: form.color || selectedModule.color || '#6366f1',
             }
@@ -300,11 +488,34 @@ const WeeklySchedulePage: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexShrink: 0 }}>
                 <Box>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                        Google 会议表（周视图）
+                        Google 会议表（日程表）
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                        通过“模块”分类周安排，并在下方统计每个模块本周的时间占比
+                        通过“模块”分类日程，并在下方统计每个模块本周时间占比
                     </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton size="small" onClick={() => jumpWeek(-1)} sx={{ border: '1px solid #cbd5e1' }}>
+                        <ChevronLeftIcon fontSize="small" />
+                    </IconButton>
+                    <Typography sx={{ minWidth: 150, textAlign: 'center', color: '#0f172a' }}>
+                        {formatWeekRange(weekDates)}
+                    </Typography>
+                    <IconButton size="small" onClick={() => jumpWeek(1)} sx={{ border: '1px solid #cbd5e1' }}>
+                        <ChevronRightIcon fontSize="small" />
+                    </IconButton>
+                    <TextField
+                        type="date"
+                        size="small"
+                        label="选日期跳转"
+                        value={formatDateInputValue(weekDates[WEEK_START] || new Date())}
+                        onChange={(e) => jumpToDate(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{ width: 160 }}
+                    />
+                    <Button size="small" variant="outlined" onClick={resetToThisWeek} sx={{ ml: 1 }}>
+                        回到本周
+                    </Button>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="返回主页">
@@ -430,6 +641,9 @@ const WeeklySchedulePage: React.FC = () => {
                                 }}
                             >
                                 {day}
+                                <Typography component="span" variant="caption" sx={{ ml: 0.5, color: '#64748b' }}>
+                                    {formatDateLabel(weekDates[idx])}
+                                </Typography>
                             </Box>
                         ))}
                     </Box>
@@ -458,7 +672,7 @@ const WeeklySchedulePage: React.FC = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                         }}
-                                    >
+                                        >
                                         <Typography
                                             variant="caption"
                                             sx={{ color: '#64748b', fontWeight: 600, mt: '-0.1rem' }}
@@ -467,15 +681,6 @@ const WeeklySchedulePage: React.FC = () => {
                                         </Typography>
                                     </Box>
                                 ))}
-                                <Box
-                                    sx={{
-                                        position: 'absolute',
-                                        top: TIME_MARKS.length * HOUR_HEIGHT,
-                                        left: 0,
-                                        right: 0,
-                                        borderTop: '1px dashed #cbd5e1',
-                                    }}
-                                />
                             </Box>
 
                         {eventsByDay.map((dayEvents, dayIndex) => (
@@ -487,7 +692,7 @@ const WeeklySchedulePage: React.FC = () => {
                                     borderRight: dayIndex === eventsByDay.length - 1 ? 'none' : '1px solid #e2e8f0',
                                 }}
                             >
-                                {Array.from({ length: HOUR_COUNT }).map((_, hour) => (
+                                {Array.from({ length: TIME_MARKS.length }).map((_, hour) => (
                                     <Box
                                         key={`grid-${dayIndex}-${hour}`}
                                         sx={{
@@ -525,6 +730,7 @@ const WeeklySchedulePage: React.FC = () => {
                                                 top,
                                                 height,
                                                 minHeight: 40,
+                                                boxSizing: 'border-box',
                                                 bgcolor: eventColor,
                                                 color: '#fff',
                                                 borderRadius: '10px',
@@ -576,9 +782,9 @@ const WeeklySchedulePage: React.FC = () => {
                                                     </Tooltip>
                                                 </Box>
                                             </Box>
-                                            <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                                                {event.startTime} - {event.endTime}
-                                            </Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.95 }}>
+                                    {pickEventDateForWeek(event, weekDates)} {event.startTime} - {event.endTime}
+                                </Typography>
                                             <Typography variant="caption" sx={{ opacity: 0.9 }} noWrap>
                                                 {eventModuleName}
                                             </Typography>
@@ -605,10 +811,10 @@ const WeeklySchedulePage: React.FC = () => {
                             onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                             required
                         />
-                            <FormControl fullWidth required>
-                                <InputLabel>模块（分类）</InputLabel>
-                                <Select
-                                    label="模块（分类）"
+                        <FormControl fullWidth required>
+                            <InputLabel>模块（分类）</InputLabel>
+                            <Select
+                                label="模块（分类）"
                                     value={form.moduleId}
                                 onChange={(e) => {
                                     const moduleId = String(e.target.value)
@@ -636,6 +842,21 @@ const WeeklySchedulePage: React.FC = () => {
                                 }
                             </Select>
                         </FormControl>
+                        <TextField
+                            fullWidth
+                            type="date"
+                            label="日期"
+                            value={form.eventDate}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setForm((prev) => ({
+                                    ...prev,
+                                    eventDate: value,
+                                    dayOfWeek: toWeekdayIndex(value),
+                                }))
+                            }}
+                            InputLabelProps={{ shrink: true }}
+                        />
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                             <FormControl fullWidth required>
                                 <InputLabel>星期</InputLabel>
@@ -661,15 +882,15 @@ const WeeklySchedulePage: React.FC = () => {
                             />
                         </Box>
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                            <TextField
-                                fullWidth
-                                type="time"
-                                label="开始时间"
-                                value={form.startTime}
-                                onChange={(e) => setForm((prev) => ({ ...prev, startTime: e.target.value }))}
-                                InputLabelProps={{ shrink: true }}
-                                inputProps={{ step: 300 }}
-                            />
+                                <TextField
+                                    fullWidth
+                                    type="time"
+                                    label="开始时间"
+                                    value={form.startTime}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, startTime: e.target.value }))}
+                                    InputLabelProps={{ shrink: true }}
+                                    inputProps={{ step: 60 }}
+                                />
                             <TextField
                                 fullWidth
                                 type="time"
@@ -677,7 +898,7 @@ const WeeklySchedulePage: React.FC = () => {
                                 value={form.endTime}
                                 onChange={(e) => setForm((prev) => ({ ...prev, endTime: e.target.value }))}
                                 InputLabelProps={{ shrink: true }}
-                                inputProps={{ step: 300 }}
+                                    inputProps={{ step: 60 }}
                             />
                         </Box>
                         <TextField

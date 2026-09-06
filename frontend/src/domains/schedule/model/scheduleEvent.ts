@@ -1,5 +1,6 @@
 export interface WeeklyScheduleEvent {
     id: string
+    eventDate: string
     title: string
     category: string
     moduleId: string
@@ -14,6 +15,7 @@ export interface WeeklyScheduleEvent {
 }
 
 export interface WeeklyScheduleEventFormData {
+    eventDate: string
     title: string
     category: string
     moduleId: string

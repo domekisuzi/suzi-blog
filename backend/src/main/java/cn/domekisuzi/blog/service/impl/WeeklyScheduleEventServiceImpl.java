@@ -11,11 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +31,11 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
     @Override
     @Transactional(readOnly = true)
     public List<WeeklyScheduleEventDTO> getAllEvents() {
-        return repository.findAllByOrderByDayOfWeekAscStartTimeAsc().stream()
+        return repository.findAll().stream()
+                .sorted(Comparator
+                        .comparing((WeeklyScheduleEvent e) -> e.getEventDate() == null ? LocalDate.MAX : e.getEventDate())
+                        .thenComparing(e -> e.getDayOfWeek() == null ? 0 : e.getDayOfWeek())
+                        .thenComparing(e -> e.getStartTime() == null ? LocalTime.MIN : e.getStartTime()))
                 .map(WeeklyScheduleEventDTO::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -52,8 +59,11 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
             if (event == null || event.getStartTime() == null || event.getEndTime() == null) {
                 continue;
             }
-            long durationMinutes = Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
+            long durationMinutes = calculateMinutesSpan(event.getStartTime(), event.getEndTime());
             if (durationMinutes < 0) {
+                durationMinutes += 24 * 60;
+            }
+            if (durationMinutes <= 0) {
                 continue;
             }
             String moduleId = event.getModuleId() == null ? "" : event.getModuleId();
@@ -76,6 +86,23 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
                 .collect(Collectors.toList());
     }
 
+    private long calculateMinutesSpan(LocalTime startTime, LocalTime endTime) {
+        if (startTime == null || endTime == null) {
+            return 0;
+        }
+        long start = startTime.getHour() * 60L + startTime.getMinute();
+        long end = endTime.getHour() * 60L + endTime.getMinute();
+        if (start == end) {
+            return 0;
+        }
+        long span = end > start ? end - start : 24 * 60 - start + end;
+        if (end > start && start / 60 == end / 60 && endTime.getMinute() == 59) {
+            long expanded = span + 1;
+            return Math.min(expanded, 24 * 60 - start);
+        }
+        return span;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public WeeklyScheduleEventDTO getEventById(String id) {
@@ -88,9 +115,12 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
     public WeeklyScheduleEventDTO createEvent(WeeklyScheduleEventDTO eventDTO) {
         validateScheduleEvent(eventDTO);
         WeeklyScheduleEvent event = eventDTO.toEntity();
+        LocalDate eventDate = parseEventDate(eventDTO.getEventDate());
         Module module = fetchModule(eventDTO.getModuleId());
         event.setModuleId(module.getId());
         event.setCategory(module.getName());
+        event.setEventDate(eventDate);
+        event.setDayOfWeek(toDayOfWeek(eventDate));
         event.setId(null);
         if (event.getColor() == null || event.getColor().isBlank()) {
             event.setColor(defaultColorForCategory(event.getCategory()));
@@ -108,10 +138,12 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
 
         validateScheduleEvent(updates);
         Module module = fetchModule(updates.getModuleId());
+        LocalDate eventDate = parseEventDate(updates.getEventDate());
         existing.setModuleId(module.getId());
         existing.setCategory(module.getName());
+        existing.setEventDate(eventDate);
+        existing.setDayOfWeek(toDayOfWeek(eventDate));
         existing.setTitle(updates.getTitle());
-        existing.setDayOfWeek(updates.getDayOfWeek());
         existing.setStartTime(parseTime(updates.getStartTime()));
         existing.setEndTime(parseTime(updates.getEndTime()));
         existing.setNote(updates.getNote());
@@ -145,7 +177,20 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
             throw new IllegalArgumentException("moduleId 不能为空");
         }
         dto.setModuleId(dto.getModuleId().trim());
-        validateDayOfWeek(dto.getDayOfWeek());
+        if (dto.getEventDate() == null || dto.getEventDate().isBlank()) {
+            throw new IllegalArgumentException("eventDate 不能为空");
+        }
+        LocalDate eventDate;
+        try {
+            eventDate = parseEventDate(dto.getEventDate());
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException("eventDate 格式无效");
+        }
+        if (dto.getDayOfWeek() == null) {
+            dto.setDayOfWeek(toDayOfWeek(eventDate));
+        } else {
+            validateDayOfWeek(dto.getDayOfWeek());
+        }
         LocalTime start = parseTime(dto.getStartTime());
         LocalTime end = parseTime(dto.getEndTime());
         if (start == null) {
@@ -154,8 +199,8 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         if (end == null) {
             throw new IllegalArgumentException("endTime 不能为空（推荐格式 HH:mm）");
         }
-        if (!end.isAfter(start)) {
-            throw new IllegalArgumentException("endTime 必须大于 startTime");
+        if (start.equals(end)) {
+            throw new IllegalArgumentException("endTime 不能与 startTime 相同");
         }
     }
 
@@ -169,10 +214,56 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         if (value == null || value.isBlank()) {
             return null;
         }
-        if (value.length() > 5) {
-            return LocalTime.parse(value.substring(0, 5));
+        String normalized = normalizeTimeText(value);
+        if (normalized == null) {
+            return null;
         }
-        return LocalTime.parse(value);
+        try {
+            String[] timeParts = normalized.split(":");
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+            if (hour < 0 || hour > 24 || minute < 0 || minute > 59) {
+                return null;
+            }
+            if (hour == 24 && minute == 0) {
+                return LocalTime.MIDNIGHT;
+            }
+            return LocalTime.of(hour, minute);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String normalizeTimeText(String value) {
+        String trimmed = value.trim().replace('：', ':');
+        int tIndex = trimmed.lastIndexOf('T');
+        if (tIndex >= 0 && tIndex < trimmed.length() - 1) {
+            trimmed = trimmed.substring(tIndex + 1);
+        }
+        if (trimmed.contains(" ")) {
+            String[] parts = trimmed.trim().split("\\s+");
+            trimmed = parts[parts.length - 1];
+        }
+
+        java.util.regex.Matcher matcher = Pattern
+                .compile("(\\d{1,2}):(\\d{1,2})")
+                .matcher(trimmed);
+        if (!matcher.find()) {
+            return null;
+        }
+        try {
+            int hour = Integer.parseInt(matcher.group(1));
+            int minute = Integer.parseInt(matcher.group(2));
+            if (hour == 24 && minute == 0) {
+                return "24:00";
+            }
+            if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+                return String.format("%02d:%02d", hour, minute);
+            }
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        return null;
     }
 
     private String defaultColorForCategory(String category) {
@@ -194,4 +285,34 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         return moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new IllegalArgumentException("模块不存在: " + moduleId));
     }
+
+    private LocalDate parseEventDate(String eventDate) {
+        if (eventDate == null || eventDate.isBlank()) {
+            throw new IllegalArgumentException("eventDate 不能为空");
+        }
+
+        String normalized = eventDate.trim();
+        int tIndex = normalized.indexOf('T');
+        if (tIndex > 0) {
+            normalized = normalized.substring(0, tIndex);
+        }
+        if (normalized.length() > 10) {
+            normalized = normalized.substring(0, 10);
+        }
+
+        try {
+            return LocalDate.parse(normalized);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("eventDate 格式无效，请使用 yyyy-MM-dd");
+        }
+    }
+
+    private Integer toDayOfWeek(LocalDate eventDate) {
+        if (eventDate == null) {
+            return 0;
+        }
+        DayOfWeek day = eventDate.getDayOfWeek();
+        return (day.getValue() + 6) % 7;
+    }
+
 }

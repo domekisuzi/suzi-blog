@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -16,6 +17,7 @@ import java.time.LocalTime;
 @Table(name = "weekly_schedule_events", indexes = {
         @Index(name = "idx_weekly_schedule_events_day", columnList = "day_of_week"),
         @Index(name = "idx_weekly_schedule_events_weekday_start", columnList = "day_of_week,start_time"),
+        @Index(name = "idx_weekly_schedule_events_event_date", columnList = "event_date"),
         @Index(name = "idx_weekly_schedule_events_category", columnList = "category"),
         @Index(name = "idx_weekly_schedule_events_module", columnList = "module_id")
 })
@@ -26,6 +28,9 @@ public class WeeklyScheduleEvent extends BaseEntity {
 
     @Id
     private String id;
+
+    @Column(name = "event_date")
+    private LocalDate eventDate;
 
     @Column(name = "title", nullable = false, length = 120)
     private String title;

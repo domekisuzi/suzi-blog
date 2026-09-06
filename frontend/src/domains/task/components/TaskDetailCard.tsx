@@ -11,7 +11,8 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
-    IconButton
+    IconButton,
+    MenuItem
 } from '@mui/material'
  
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -22,6 +23,7 @@ import { useLoading } from '../../../context/LoadingContext'
 import { updateSubtask } from '../api/taskApi'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { Module } from '../../module/model/module'
 
  /**
   * this component is used to display the task details and its subtask 
@@ -31,10 +33,11 @@ interface Props {
     task: Task 
     isEditing?: boolean
     onChange?: (updated: Task) => void // this function is used for noticing the change to parent component, when the value is uneditable, we do not need to set the value
+    moduleList?: Module[]
 }
 
 
-export default function TaskDetailCard({ task, isEditing = false, onChange }: Props) {
+export default function TaskDetailCard({ task, isEditing = false, onChange, moduleList = [] }: Props) {
     dayjs.extend(utc)
     const { loading, setLoading } = useLoading();
     const handleFieldChange = (field: keyof Task) => (e: any) => {
@@ -141,26 +144,40 @@ export default function TaskDetailCard({ task, isEditing = false, onChange }: Pr
 
             {/* 模块与分类 */}
             <Typography variant="body2" color="text.secondary" gutterBottom>
-                模块：{task.moduleName ?? '—'} ｜
+                {isEditing ? '模块：' : `模块：${task.moduleName ?? '—'} ｜`}
             </Typography>
+            {isEditing ? (
+                <TextField
+                    select
+                    value={task.moduleName ?? ''}
+                    onChange={handleFieldChange('moduleName')}
+                    size="small"
+                    sx={{ mb: 2 }}
+                    fullWidth
+                >
+                    <MenuItem value="">无</MenuItem>
+                    {moduleList.map((module) => (
+                        <MenuItem key={module.id} value={module.name}>
+                            {module.name}
+                        </MenuItem>
+                    ))}
+                </TextField>
+            ) : (
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    创建时间：{task.createdAt} ｜ 截止：{ task.dueDate ? dateUtils.toDisplayFormat( task.dueDate) : '无' }
+                </Typography>
+            )}
 
-            {
-                
-                isEditing ?
-               
-                     <TextField
-                        type="date"
-                        variant="standard"
-                        value={task.dueDate ? dateUtils.toDisplayWithPattern(task.dueDate, 'YYYY-MM-DD') : ''}
-                        onChange={e => {setEditDueDate( dateUtils.toBackendFormat(e.target.value))}}
-                        size="small"
-                        sx={{ minWidth: 120 }}/>
-                :
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-                创建时间：{task.createdAt} ｜ 截止：{ task.dueDate ? dateUtils.toDisplayFormat( task.dueDate) : '无' }
-            </Typography>
-            
-            }
+            {isEditing && (
+                <TextField
+                    type="date"
+                    variant="standard"
+                    value={task.dueDate ? dateUtils.toDisplayWithPattern(task.dueDate, 'YYYY-MM-DD') : ''}
+                    onChange={e => {setEditDueDate( dateUtils.toBackendFormat(e.target.value))}}
+                    size="small"
+                    sx={{ minWidth: 120 }}
+                />
+            )}
 
             <Divider sx={{ my: 2 }} />
 
