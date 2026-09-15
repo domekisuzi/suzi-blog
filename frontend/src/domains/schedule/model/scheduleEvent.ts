@@ -3,7 +3,7 @@ export interface WeeklyScheduleEvent {
     eventDate: string
     title: string
     category: string
-    moduleId: string
+    moduleId: string | null
     moduleName?: string
     dayOfWeek: number
     startTime: string
@@ -18,7 +18,7 @@ export interface WeeklyScheduleEventFormData {
     eventDate: string
     title: string
     category: string
-    moduleId: string
+    moduleId: string | null
     dayOfWeek: number
     startTime: string
     endTime: string

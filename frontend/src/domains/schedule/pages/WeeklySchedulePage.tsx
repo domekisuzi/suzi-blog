@@ -52,7 +52,12 @@ const PIXELS_PER_MINUTE = HOUR_HEIGHT / 60
 const WEEK_START = 0
 const MINUTES_PER_DAY = HOUR_COUNT * 60
 
-const formatDateInputValue = (date: Date): string => date.toISOString().slice(0, 10)
+const formatDateInputValue = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
 const parseDateInputValue = (value: string): Date => {
     const [year, month, day] = value.split('-').map(Number)
     if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
@@ -74,21 +79,10 @@ const pickDateFromEvent = (event: WeeklyScheduleEvent): string => {
     if (event.eventDate) {
         return event.eventDate.split('T')[0]
     }
+    if (event.createdAt) {
+        return event.createdAt.split('T')[0]
+    }
     return ''
-}
-const pickEventDateForWeek = (event: WeeklyScheduleEvent, weekDates: Date[]) => {
-    if (!event) {
-        return ''
-    }
-    const rawDate = pickDateFromEvent(event)
-    if (rawDate) {
-        return rawDate
-    }
-    if (event.dayOfWeek == null) {
-        return ''
-    }
-    const idx = ((event.dayOfWeek % 7) + 7) % 7
-    return weekDates[idx] ? formatDateInputValue(weekDates[idx]) : ''
 }
 const isWeekMatch = (dateText: string, weekDates: Date[]): boolean => {
     return weekDates.some((date) => formatDateInputValue(date) === dateText)
@@ -203,10 +197,6 @@ const findModuleNameById = (modules: Module[], moduleId: string) => {
     return modules.find(m => m.id === moduleId)?.name || ''
 }
 
-const resolveInitialModuleId = (modules: Module[]) => {
-    return modules[0]?.id || ''
-}
-
 const formatWeekRange = (weekDates: Date[]): string => {
     if (weekDates.length === 0) {
         return ''
@@ -305,14 +295,6 @@ const WeeklySchedulePage: React.FC = () => {
             setEvents(data)
             setModules(moduleData)
             setStats(usageStats)
-            const nextModuleId = resolveInitialModuleId(moduleData)
-            if (moduleData.length > 0 && (!form.moduleId || !moduleData.some((item) => item.id === form.moduleId))) {
-                setForm((prev) => ({
-                    ...prev,
-                    moduleId: nextModuleId,
-                    category: nextModuleId ? findModuleNameById(moduleData, nextModuleId) : '',
-                }))
-            }
         } catch (error: any) {
             console.error('加载周安排失败', error)
             showError('加载周安排失败：' + (error?.message || '请重试'))
@@ -339,7 +321,7 @@ const WeeklySchedulePage: React.FC = () => {
         return events
             .filter((item) => moduleFilter === 'all' || item.moduleId === moduleFilter)
             .filter((item) => {
-                const eventDate = pickEventDateForWeek(item, weekDates)
+                const eventDate = pickDateFromEvent(item)
                 if (!eventDate) {
                     return false
                 }
@@ -355,7 +337,7 @@ const WeeklySchedulePage: React.FC = () => {
             dateIndexMap.set(formatDateInputValue(date), idx)
         })
         for (const item of filteredEvents) {
-            const eventDate = pickEventDateForWeek(item, weekDates)
+            const eventDate = pickDateFromEvent(item)
             const day = dateIndexMap.get(eventDate)
             if (day === undefined) {
                 continue
@@ -369,12 +351,11 @@ const WeeklySchedulePage: React.FC = () => {
 
     const openCreateDialog = () => {
         setEditingEvent(null)
-        const defaultModule = moduleFilter !== 'all' ? moduleFilter : resolveInitialModuleId(modules)
-        const defaultDate = formatDateInputValue(weekDates[WEEK_START] || new Date())
+        const defaultDate = formatDateInputValue(new Date())
         setForm({
             ...emptyForm,
-            category: defaultModule ? findModuleNameById(modules, defaultModule) : '',
-            moduleId: defaultModule,
+            category: '未分类',
+            moduleId: '',
             eventDate: defaultDate,
             dayOfWeek: toWeekdayIndex(defaultDate),
         })
@@ -385,10 +366,10 @@ const WeeklySchedulePage: React.FC = () => {
     const openEditDialog = (event: WeeklyScheduleEvent) => {
         const moduleId = event.moduleId && moduleMap.has(event.moduleId)
             ? event.moduleId
-            : resolveInitialModuleId(modules)
+            : ''
         const resolvedModuleName = moduleId ? findModuleNameById(modules, moduleId) : ''
-        const eventDate = pickEventDateForWeek(event, weekDates)
-        const resolvedDate = eventDate || formatDateInputValue(weekDates[event.dayOfWeek] || new Date())
+        const eventDate = pickDateFromEvent(event)
+        const resolvedDate = eventDate || formatDateInputValue(new Date())
         setEditingEvent(event)
         setForm({
             eventDate: resolvedDate,
@@ -411,13 +392,9 @@ const WeeklySchedulePage: React.FC = () => {
     }
 
     const handleCreateSubmit = async () => {
-        const selectedModule = moduleMap.get(form.moduleId)
+        const selectedModule = moduleMap.get(form.moduleId || '')
         if (!form.title.trim()) {
             showWarning('标题不能为空')
-            return
-        }
-        if (!selectedModule) {
-            showWarning('请选择模块（分类）')
             return
         }
         if (!form.eventDate) {
@@ -439,8 +416,9 @@ const WeeklySchedulePage: React.FC = () => {
                 ...form,
                 dayOfWeek: toWeekdayIndex(form.eventDate),
                 eventDate: form.eventDate,
-                category: selectedModule.name,
-                color: form.color || selectedModule.color || '#6366f1',
+                moduleId: selectedModule?.id || null,
+                category: selectedModule?.name || '未分类',
+                color: form.color || selectedModule?.color || '#64748b',
             }
             if (editingEvent) {
                 await updateScheduleEvent(editingEvent.id, payload)
@@ -491,7 +469,7 @@ const WeeklySchedulePage: React.FC = () => {
                         Google 会议表（日程表）
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
-                        通过“模块”分类日程，并在下方统计每个模块本周时间占比
+                        每条日程绑定具体日期，可按模块分类并统计时间占比
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -717,7 +695,7 @@ const WeeklySchedulePage: React.FC = () => {
                                     const eventModuleName = event.moduleId
                                         ? moduleNameById(event.moduleId)
                                         : event.category || '未关联'
-                                    const eventColor = event.color || moduleColorMap.get(event.moduleId) || '#6366f1'
+                                    const eventColor = event.color || moduleColorMap.get(event.moduleId || '') || '#6366f1'
 
                                     return (
                                         <Box
@@ -783,7 +761,7 @@ const WeeklySchedulePage: React.FC = () => {
                                                 </Box>
                                             </Box>
                                 <Typography variant="caption" sx={{ opacity: 0.95 }}>
-                                    {pickEventDateForWeek(event, weekDates)} {event.startTime} - {event.endTime}
+                                    {pickDateFromEvent(event)} {event.startTime} - {event.endTime}
                                 </Typography>
                                             <Typography variant="caption" sx={{ opacity: 0.9 }} noWrap>
                                                 {eventModuleName}
@@ -811,25 +789,30 @@ const WeeklySchedulePage: React.FC = () => {
                             onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                             required
                         />
-                        <FormControl fullWidth required>
-                            <InputLabel>模块（分类）</InputLabel>
+                        <FormControl fullWidth>
+                            <InputLabel>模块（可选）</InputLabel>
                             <Select
-                                label="模块（分类）"
-                                    value={form.moduleId}
+                                label="模块（可选）"
+                                value={form.moduleId || ''}
+                                displayEmpty
+                                renderValue={(selected) => selected ? moduleNameById(String(selected)) : '不关联模块'}
                                 onChange={(e) => {
                                     const moduleId = String(e.target.value)
-                                    const name = moduleNameById(moduleId)
+                                    const selectedModule = moduleMap.get(moduleId)
                                     setForm((prev) => ({
                                         ...prev,
                                         moduleId,
-                                        category: name || prev.category,
-                                        color: moduleColorMap.get(moduleId) || '#6366f1',
+                                        category: selectedModule?.name || '未分类',
+                                        color: selectedModule?.color || '#64748b',
                                     }))
                                 }}
                                 >
+                                    <MenuItem value="">
+                                        不关联模块
+                                    </MenuItem>
                                     {modules.length === 0 && (
                                         <MenuItem value="" disabled>
-                                            暂无模块，请先创建模块
+                                            暂无可选模块
                                         </MenuItem>
                                     )}
                                     {moduleFilterOptions
@@ -863,7 +846,19 @@ const WeeklySchedulePage: React.FC = () => {
                                 <Select
                                     label="星期"
                                     value={form.dayOfWeek}
-                                    onChange={(e) => setForm((prev) => ({ ...prev, dayOfWeek: Number(e.target.value) }))}
+                                    onChange={(e) => {
+                                        const dayOfWeek = Number(e.target.value)
+                                        const baseDate = parseDateInputValue(form.eventDate || formatDateInputValue(new Date()))
+                                        const baseWeekday = toWeekdayIndex(formatDateInputValue(baseDate))
+                                        const delta = dayOfWeek - baseWeekday
+                                        const nextDate = new Date(baseDate)
+                                        nextDate.setDate(baseDate.getDate() + delta)
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            dayOfWeek,
+                                            eventDate: formatDateInputValue(nextDate),
+                                        }))
+                                    }}
                                 >
                                     {WEEK_DAY_LABELS.map((label, idx) => (
                                         <MenuItem key={label} value={idx}>
@@ -876,7 +871,7 @@ const WeeklySchedulePage: React.FC = () => {
                                 fullWidth
                                 type="color"
                                 label="颜色"
-                                value={form.color || moduleColorMap.get(form.moduleId) || '#6366f1'}
+                                value={form.color || moduleColorMap.get(form.moduleId || '') || '#6366f1'}
                                 onChange={(e) => setForm((prev) => ({ ...prev, color: e.target.value }))}
                                 InputLabelProps={{ shrink: true }}
                             />

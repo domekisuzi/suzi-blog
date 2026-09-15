@@ -54,6 +54,7 @@ public class WeeklyScheduleEventDTO extends BaseDTO {
     public WeeklyScheduleEvent toEntity() {
         WeeklyScheduleEvent entity = new WeeklyScheduleEvent();
         entity.setId(this.id);
+        entity.setTitle(this.title);
         LocalDate parsedEventDate = parseDate(this.eventDate);
         if (parsedEventDate != null) {
             entity.setEventDate(parsedEventDate);

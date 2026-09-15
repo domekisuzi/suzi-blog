@@ -53,7 +53,7 @@ INSERT IGNORE INTO goal_tasks (goal_id, task_id) VALUES
 -- =============================================
 CREATE TABLE IF NOT EXISTS weekly_schedule_events (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    event_date DATE NULL,
+    event_date DATE NOT NULL,
     title VARCHAR(120) NOT NULL,
     category VARCHAR(80) NOT NULL,
     module_id VARCHAR(36) NULL,

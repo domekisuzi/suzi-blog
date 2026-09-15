@@ -29,15 +29,41 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
     private final ModuleRepository moduleRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public List<WeeklyScheduleEventDTO> getAllEvents() {
-        return repository.findAll().stream()
+        List<WeeklyScheduleEvent> events = repository.findAll();
+        List<WeeklyScheduleEvent> repairedEvents = new ArrayList<>();
+        for (WeeklyScheduleEvent event : events) {
+            if (event.getEventDate() == null) {
+                LocalDate fixedDate = resolveLegacyEventDate(event);
+                event.setEventDate(fixedDate);
+                event.setDayOfWeek(toDayOfWeek(fixedDate));
+                event.setUpdatedAt(LocalDateTime.now());
+                repairedEvents.add(event);
+            }
+        }
+        if (!repairedEvents.isEmpty()) {
+            repository.saveAll(repairedEvents);
+        }
+
+        return events.stream()
                 .sorted(Comparator
                         .comparing((WeeklyScheduleEvent e) -> e.getEventDate() == null ? LocalDate.MAX : e.getEventDate())
                         .thenComparing(e -> e.getDayOfWeek() == null ? 0 : e.getDayOfWeek())
                         .thenComparing(e -> e.getStartTime() == null ? LocalTime.MIN : e.getStartTime()))
                 .map(WeeklyScheduleEventDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    private LocalDate resolveLegacyEventDate(WeeklyScheduleEvent event) {
+        LocalDate anchorDate = event.getCreatedAt() == null
+                ? LocalDate.now()
+                : event.getCreatedAt().toLocalDate();
+        Integer dayOfWeek = event.getDayOfWeek();
+        if (dayOfWeek == null || dayOfWeek < 0 || dayOfWeek > 6) {
+            return anchorDate;
+        }
+        LocalDate monday = anchorDate.minusDays(toDayOfWeek(anchorDate));
+        return monday.plusDays(dayOfWeek);
     }
 
     @Override
@@ -116,9 +142,9 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         validateScheduleEvent(eventDTO);
         WeeklyScheduleEvent event = eventDTO.toEntity();
         LocalDate eventDate = parseEventDate(eventDTO.getEventDate());
-        Module module = fetchModule(eventDTO.getModuleId());
-        event.setModuleId(module.getId());
-        event.setCategory(module.getName());
+        Module module = resolveModule(eventDTO.getModuleId());
+        event.setModuleId(module == null ? null : module.getId());
+        event.setCategory(module == null ? normalizeCategory(eventDTO.getCategory()) : module.getName());
         event.setEventDate(eventDate);
         event.setDayOfWeek(toDayOfWeek(eventDate));
         event.setId(null);
@@ -137,10 +163,10 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
                 .orElseThrow(() -> new IllegalArgumentException("Schedule event not found: " + id));
 
         validateScheduleEvent(updates);
-        Module module = fetchModule(updates.getModuleId());
+        Module module = resolveModule(updates.getModuleId());
         LocalDate eventDate = parseEventDate(updates.getEventDate());
-        existing.setModuleId(module.getId());
-        existing.setCategory(module.getName());
+        existing.setModuleId(module == null ? null : module.getId());
+        existing.setCategory(module == null ? normalizeCategory(updates.getCategory()) : module.getName());
         existing.setEventDate(eventDate);
         existing.setDayOfWeek(toDayOfWeek(eventDate));
         existing.setTitle(updates.getTitle());
@@ -149,7 +175,7 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         existing.setNote(updates.getNote());
         existing.setColor(
                 updates.getColor() == null || updates.getColor().isBlank()
-                        ? defaultColorForCategory(module.getName())
+                        ? defaultColorForCategory(existing.getCategory())
                         : updates.getColor()
         );
         existing.setUpdatedAt(LocalDateTime.now());
@@ -174,9 +200,10 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         }
         dto.setTitle(dto.getTitle().trim());
         if (dto.getModuleId() == null || dto.getModuleId().isBlank()) {
-            throw new IllegalArgumentException("moduleId 不能为空");
+            dto.setModuleId(null);
+        } else {
+            dto.setModuleId(dto.getModuleId().trim());
         }
-        dto.setModuleId(dto.getModuleId().trim());
         if (dto.getEventDate() == null || dto.getEventDate().isBlank()) {
             throw new IllegalArgumentException("eventDate 不能为空");
         }
@@ -281,9 +308,16 @@ public class WeeklyScheduleEventServiceImpl implements WeeklyScheduleEventServic
         }
     }
 
-    private Module fetchModule(String moduleId) {
+    private Module resolveModule(String moduleId) {
+        if (moduleId == null || moduleId.isBlank()) {
+            return null;
+        }
         return moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new IllegalArgumentException("模块不存在: " + moduleId));
+    }
+
+    private String normalizeCategory(String category) {
+        return category == null || category.isBlank() ? "未分类" : category.trim();
     }
 
     private LocalDate parseEventDate(String eventDate) {
